@@ -27,3 +27,17 @@ $string['selectanswer'] = 'Select one network address.';
 $string['invalidipv4'] = 'Enter an IPv4 address without a prefix, for example 10.37.19.0. Use four decimal octets from 0 to 255, without leading zeroes.';
 $string['correctansweris'] = 'The correct network address is: {$a}';
 $string['privacy:metadata'] = 'The plugin stores question settings only. Attempt data and responses are managed by the core question subsystem.';
+
+$string['batchadd'] = 'Add IPv4 questions to a quiz';
+$string['targetquiz'] = 'Quiz';
+$string['questioncount'] = 'Number of questions';
+$string['generate'] = 'Done — add questions';
+$string['invalidcount'] = 'Enter a number from 1 to {$a}.';
+$string['invalidquiz'] = 'Select a quiz in this course that you are allowed to edit.';
+$string['batchhasattempts'] = 'Students have already started attempts at this quiz. Choose a new quiz to change its questions.';
+$string['noeditablequizzes'] = 'There are no quizzes in this course that you are allowed to populate.';
+$string['batchbusy'] = 'This quiz is being updated. Please try again.';
+$string['generatedname'] = 'IPv4 — network address {$a}';
+$string['generatedtext'] = 'Determine the network address.';
+$string['batchadded'] = 'Added {$a} IPv4 questions to the quiz.';
+$string['batchintro'] = 'Choose a quiz and how many questions to add. Each student receives randomly generated IP addresses and prefixes when starting an attempt. Refreshing or resuming preserves them. Questions already in the quiz stay in place; these questions are appended. Each question is worth one mark. Random coincidences are possible.';
