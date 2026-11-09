@@ -18,8 +18,12 @@ class qtype_ipv4 extends question_type {
 
     public function save_question_options($question) {
         $question->tasktype = $question->tasktype ?? 'network';
+        if (in_array($question->tasktype, \qtype_ipv4\exercise::COMMAND_TYPES, true)) {
+            $question->prefixes = '8,16,24';
+            $question->answermode = 'text';
+        }
         $prefixes = array_filter(explode(',', $question->prefixes), 'strlen');
-        if (!in_array($question->tasktype, \qtype_ipv4\exercise::TYPES, true) || !$prefixes ||
+        if (!in_array($question->tasktype, \qtype_ipv4\exercise::ALL_TYPES, true) || !$prefixes ||
                 array_diff($prefixes, array_map('strval', \qtype_ipv4\network::PREFIXES)) ||
                 !in_array($question->answermode, ['text', 'choice'], true)) {
             throw new invalid_parameter_exception('Invalid IPv4 question settings');

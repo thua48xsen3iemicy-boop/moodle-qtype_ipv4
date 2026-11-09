@@ -29,11 +29,17 @@ final class batch_service {
     }
 
     /** Append templates atomically; concrete exercises are generated when students start attempts. */
-    public static function add(int $courseid, int $cmid, int $count, array $prefixes, string $mode, string $tasktype = 'network'): int {
+    public static function add(int $courseid, int $cmid, int $count, array $prefixes, string $mode,
+            string|array $tasktype = 'network'): int {
         global $CFG, $DB;
         require_once($CFG->libdir . '/questionlib.php');
         require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-        if (!in_array($tasktype, exercise::TYPES, true) || $count < 1 || $count > self::MAX_COUNT || !$prefixes || array_diff($prefixes, network::PREFIXES) ||
+        $exercises = array_values(array_unique(is_array($tasktype) ? $tasktype : [$tasktype]));
+        $needsnetwork = (bool)array_intersect($exercises, exercise::SUBNET_TYPES);
+        if (!$exercises || count($exercises) > $count ||
+                array_filter($exercises, static fn($id) => !exercise\catalog::valid($id)) ||
+                $count < 1 || $count > self::MAX_COUNT ||
+                ($needsnetwork && (!$prefixes || array_diff($prefixes, network::PREFIXES))) ||
                 !in_array($mode, ['text', 'choice'], true)) {
             throw new \invalid_parameter_exception('Invalid IPv4 batch settings');
         }
@@ -56,16 +62,40 @@ final class batch_service {
                 $quiz->cmid = $cm->id;
                 $offset = $DB->count_records('quiz_slots', ['quizid' => $quiz->id]);
                 $qtype = \question_bank::get_qtype('ipv4');
+                $categories = [];
+                foreach (exercise\catalog::groups() as $group => $ids) {
+                    if (!array_intersect($ids, $exercises)) {
+                        continue;
+                    }
+                    $idnumber = 'qtype_ipv4_' . $group;
+                    $child = $DB->get_record('question_categories',
+                            ['contextid' => $category->contextid, 'idnumber' => $idnumber]);
+                    if (!$child) {
+                        $child = (object)[
+                            'contextid' => $category->contextid, 'parent' => $category->id,
+                            'name' => get_string('group_' . $group, 'qtype_ipv4'),
+                            'info' => '', 'infoformat' => FORMAT_PLAIN, 'sortorder' => 999,
+                            'stamp' => make_unique_id_code(), 'idnumber' => $idnumber,
+                        ];
+                        $child->id = $DB->insert_record('question_categories', $child);
+                    }
+                    foreach ($ids as $id) {
+                        $categories[$id] = $child;
+                    }
+                }
                 for ($i = 1; $i <= $count; $i++) {
+                    $exercise = $exercises[($i - 1) % count($exercises)];
+                    $targetcategory = $categories[$exercise];
                     $form = (object)[
-                        'category' => $category->id . ',' . $category->contextid,
-                        'name' => get_string('generatedname', 'qtype_ipv4', $offset + $i),
-                        'questiontext' => ['text' => get_string('generatedtext', 'qtype_ipv4'), 'format' => FORMAT_PLAIN],
+                        'category' => $targetcategory->id . ',' . $targetcategory->contextid,
+                        'name' => get_string('type_' . $exercise, 'qtype_ipv4') . ' ' . ($offset + $i),
+                        'questiontext' => ['text' => get_string('generatedintro', 'qtype_ipv4'), 'format' => FORMAT_PLAIN],
                         'generalfeedback' => ['text' => '', 'format' => FORMAT_PLAIN],
                         'defaultmark' => 1, 'penalty' => 0.3333333,
                         'status' => \core_question\local\bank\question_version_status::QUESTION_STATUS_READY,
-                        'tasktype' => $tasktype,
-                        'prefixes' => implode(',', array_unique($prefixes)), 'answermode' => $mode,
+                        'prefixes' => $needsnetwork ? implode(',', array_unique($prefixes)) : '8,16,24',
+                        'answermode' => in_array($exercise, exercise::SUBNET_TYPES, true) ? $mode : 'text',
+                        'tasktype' => $exercise,
                     ];
                     $question = $qtype->save_question((object)['qtype' => 'ipv4'], $form);
                     quiz_require_question_use($question->id);

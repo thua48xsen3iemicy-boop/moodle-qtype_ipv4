@@ -113,3 +113,32 @@ Do not overwrite other agents' notes; append decision/result with context and te
   identity assertions; extended real-Moodle mixed lifecycle test for both modes
   to check two boolean options and grading. Real Moodle/DB/browser tests were
   NOT run: core and DB are not installed in this checkout.
+
+## Published ip-command integration on current main
+
+- Integrates the previously local ip modules with main eec6304, retaining all 12
+  published IPv4 exercises, /1-/30, boolean choice templates and Practicum state.
+  Adds 29 command/diagnostic ids: 41 total, grouped quiz creation, topic categories,
+  search in single-question and activity block selectors, and ordered textareas.
+- qtype_ipv4 0.4.0 / DB 2026110903; mod_practicum 0.3.0 / DB 2026110903 requires it.
+  Canonical DB selector stays tasktype. Migration also reads the earlier local
+  exercise-column schema. Existing question exercise arrays and attempt ids stay
+  unchanged. TYPES stays the legacy 12-id API; ALL_TYPES exposes all 41 to the new
+  module so the old deployed Practicum remains usable during a staged update.
+- Validation actually run in Docker ipv4-runtime: Moodle 5.3+ Build 20261030,
+  PHP 8.4.27, PostgreSQL 17.11, PHPUnit 11.5.56. Upgrade of both copied plugins
+  succeeded. Separate PHPUnit database reinitialised. Command:
+  docker exec -w /app/work/moodle ipv4-runtime php vendor/bin/phpunit
+  --testsuite qtype_ipv4_testsuite,mod_practicum_testsuite
+  (one command): 44 tests, 74,368 assertions, all passed. Covers every type in
+  training/exam, resume and settings changes, grading, backup/restore, XML,
+  permissions, expiry/privacy, semantic command equivalents and negative inputs.
+- The earlier browser run (30-type local implementation) reached 8/8 with
+  abbreviations and multi-line answers; it is not a fresh UI run of this merged
+  41-type version. PHP 8.3, other databases/themes, full core tests and real
+  kernel command execution were not verified in this integration. Commands are
+  never executed by either production plugin. Supported grammar only.
+- Publish to feat/bulk-ipv4, the branch used by the user's old update.sh; keep
+  latest main changes intact and do not force-push. No user-server deployment
+  is performed here. That old script installs qtype only; full new activity
+  functionality needs both packages from this same branch via deploy.sh.

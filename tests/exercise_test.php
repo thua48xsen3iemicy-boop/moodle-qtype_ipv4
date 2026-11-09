@@ -39,7 +39,7 @@ final class exercise_test extends \advanced_testcase {
     }
 
     public function test_all_types_and_prefixes_have_unique_valid_choices(): void {
-        foreach (exercise::TYPES as $type) {
+        foreach (exercise::SUBNET_TYPES as $type) {
             foreach (network::PREFIXES as $prefix) {
                 for ($i = 0; $i < 20; $i++) {
                     $data = exercise::generate($type, [$prefix]);

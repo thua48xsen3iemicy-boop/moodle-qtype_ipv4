@@ -55,3 +55,5 @@ $string['explanation_nextip'] = 'Add one to the address, carrying to the previou
 $string['explanation_previousip'] = 'Subtract one from the address, borrowing from the previous octet before zero.';
 $string['explanation_nextsubnet'] = 'The next subnet starts immediately after the current broadcast; retain the prefix.';
 $string['explanation_hostcount'] = 'Assignable hosts in a conventional subnet: 2^(32 − prefix) − 2, excluding network and broadcast.';
+
+$string['commandexplanation'] = 'Compare your response with the reference answer. Commands are checked using the supported teaching syntax and are never executed on the server.';

@@ -29,7 +29,7 @@ class mod_practicum_mod_form extends moodleform_mod {
         $prefixselect = $m->createElement('select', 'blockprefix', get_string('prefixes', 'practicum'), $prefixes);
         $prefixselect->setMultiple(true);
         $elements = [
-            $m->createElement('select', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
+            $m->createElement('autocomplete', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
             $m->createElement('text', 'blockcount', get_string('count', 'practicum')),
             $prefixselect,
         ];
