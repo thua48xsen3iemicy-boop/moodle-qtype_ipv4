@@ -21,6 +21,7 @@ if (!$quizzes) {
 $PAGE->set_url(new moodle_url('/question/type/ipv4/generate.php', ['courseid' => $courseid]));
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('incourse');
+$PAGE->set_show_course_index(false);
 $PAGE->set_title(get_string('batchadd', 'qtype_ipv4'));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_secondary_active_tab('qtype_ipv4_generate');
