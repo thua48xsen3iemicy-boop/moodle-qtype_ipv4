@@ -142,3 +142,24 @@ Do not overwrite other agents' notes; append decision/result with context and te
   latest main changes intact and do not force-push. No user-server deployment
   is performed here. That old script installs qtype only; full new activity
   functionality needs both packages from this same branch via deploy.sh.
+
+## Wide command answers (qtype 0.4.1)
+
+- Fix/wide-command-answer removes size=18 only for command controls and adds
+  Bootstrap w-100 to single-command inputs and ordered-command textareas. The
+  common qtype renderer covers ordinary quizzes and Practicum, editable answers
+  and readonly review. IPv4 fields and boolean choices retain their controls.
+- qtype version 2026111000 / 0.4.1 refreshes the installed plugin; no schema change
+  or Practicum dependency change. No user-server deployment or PR merge performed.
+- Actual checks: PHP syntax; Moodle 5.3+ Build 20261030 / PHP 8.4.27 / PostgreSQL
+  17.11 / Boost; Chromium via `python -u work/check-wide-answer.py`. Geometry at
+  viewport widths 1440 and 390 matches the available answer area for both inputs
+  and textareas: quiz 536/340 px, Practicum 851/340 px at measurement time. Long
+  command fits on desktop; narrow single-line fields retain native text scrolling.
+  No extra page overflow versus original sizing (stock quiz navigation itself
+  has a four-pixel mobile gutter overflow). Multiline fields wrap visually.
+- Browser save/return/reload preserves all responses; quiz 3/3 and Practicum
+  100/100, boolean input included. Readonly review remains wide. No JS errors.
+  Screenshots and logs in ignored work/wide-*. Custom themes and browsers other
+  than Chromium were not checked. Existing 44-test run is the previous release's
+  result; this small display change was verified directly in the browser.
