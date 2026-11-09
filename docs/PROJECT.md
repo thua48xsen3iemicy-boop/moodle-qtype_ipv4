@@ -7,7 +7,7 @@ independently selected allowed prefixes /1–/30.
 Future families: Linux commands, Linux paths and isolated VM lab tasks.
 
 Confirmed requirements: both training and assessment, mixed task blocks, manual
-answers, independent random prefix selection. Keep the existing IPv4 plugin usable
+answers except clickable Yes/No for boolean tasks, independent random prefix selection. Keep the existing IPv4 plugin usable
 in normal Moodle quizzes. Do not implement quotas or guaranteed global uniqueness.
 
 The user has another GNS3/xterm.js project; its URL and API are not yet supplied.

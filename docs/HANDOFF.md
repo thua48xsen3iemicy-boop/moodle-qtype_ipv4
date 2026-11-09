@@ -98,3 +98,18 @@ Do not overwrite other agents' notes; append decision/result with context and te
   reload, settings changes and full grading; NOT RUN: this checkout has no Moodle
   installation/DB. Browser form, upgrade and actual PHPUnit integration remain
   required. Deploy after merge with root deploy.sh and open activity block settings.
+
+## Practicum 0.2.1: Yes/No controls
+
+- Explicit user change: samesubnet and assignable use choice mode (native labelled
+  Yes/No radio controls), other activities still use text. Updated AGENTS product
+  rule and recorded D011 to supersede the former text-only contract.
+- Boolean templates use new v3 keys including answermode; text v2 keys remain
+  identical. Existing templates, question usages and saved modes are untouched.
+- Module version 0.2.1; no table migration. Deploy after merge and start a new
+  attempt to see choices; pre-upgrade active attempts retain their saved text mode.
+- Validation: PHP syntax, isolated configuration/qtype harness (64,389 assertions),
+  adapter save/reuse contract for all 12 types with correct modes. Added 24 mode/
+  identity assertions; extended real-Moodle mixed lifecycle test for both modes
+  to check two boolean options and grading. Real Moodle/DB/browser tests were
+  NOT run: core and DB are not installed in this checkout.

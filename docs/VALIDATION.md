@@ -35,3 +35,16 @@ resume after activity settings changes, preserved conditions and 100% grading.
 It was added but not run: this checkout lacks Moodle core/DB and the historical
 work/moodle environment. Browser multiselect, actual upgrade and full PHPUnit
 remain unverified for this version.
+
+## Practicum 0.2.1 Yes/No controls
+
+PHP 8.4.24 syntax checks pass. Isolated configuration tests include 24 new
+assertions for choice/text modes and new boolean identities with preserved text
+identities (64,389 assertions including qtype checks). The isolated adapter
+save/reuse contract checks correct modes on all 12 generated templates. The
+existing isolated qtype checks cover both boolean options and saved text/choice
+attempt restoration. These use Moodle stand-ins and are not DB integration.
+
+The mixed-activity real-Moodle test now expects two radio choices for boolean
+tasks, tests both yes/no grades and empty response validation. This test and
+browser verification remain unrun: no Moodle core/DB in this checkout.

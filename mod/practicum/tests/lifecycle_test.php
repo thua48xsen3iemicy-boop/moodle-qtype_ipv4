@@ -93,7 +93,16 @@ final class lifecycle_test extends \advanced_testcase {
                 $question = $usage->get_question($slot);
                 $seen[] = 'ipv4_' . $question->tasktype;
                 $this->assertSame(26, $question->prefix);
-                $this->assertSame('text', $question->answermode);
+                $boolean = in_array($question->tasktype, ['samesubnet', 'assignable'], true);
+                $this->assertSame($boolean ? 'choice' : 'text', $question->answermode);
+                if ($boolean) {
+                    $this->assertEqualsCanonicalizing(['yes', 'no'], $question->choices);
+                    $this->assertFalse($question->is_complete_response([]));
+                    foreach (['yes', 'no'] as $answer) {
+                        $expected = $answer === $question->get_correct_response()['answer'] ? 1.0 : 0.0;
+                        $this->assertSame($expected, $question->grade_response(['answer' => $answer])[0]);
+                    }
+                }
                 $this->assertStringNotContainsString('[[', $question->task_text());
                 $snapshots[$slot] = $question->exercise;
                 $response = $question->get_correct_response();

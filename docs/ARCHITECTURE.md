@@ -6,7 +6,9 @@ contains a stable type id, schema version and settings snapshot. No quota balanc
 `registry` is an explicit allowlist of task implementations. `task_type` is the
 adapter contract. `ipv4_task` bridges every supported qtype IPv4 exercise to the activity; the
 `ipv4_network` wrapper preserves the original class and stable plan id. Template
-keys v2 include exercise type and prefixes, and never mutate existing templates.
+keys v2 include exercise type and prefixes. Boolean choice templates use v3
+identities including answer mode; other tasks keep v2. Existing templates are
+never mutated. Boolean tasks use Yes/No radio buttons; other tasks use text.
 
 Moodle question usages store generated condition, answer order, responses and
 behaviour steps. Activity attempts store owner, plan, mode, timestamps and deadline.
