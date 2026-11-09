@@ -10,7 +10,7 @@ AGENTS.md before editing. Read `docs/DECISIONS.md` before changing behaviour.
 Never commit work/, database contents, sessions, tokens or Moodle core.
 
 ## Product rules
-- Practicum uses manual input only. Keep existing qtype choice mode for backwards compatibility.
+- Practicum uses text input except boolean tasks (samesubnet/assignable), which use Yes/No choices per user request. Keep existing qtype choice mode for backwards compatibility.
 - Prefixes are independently random. Do not introduce balanced quotas.
 - Existing attempts must never be regenerated or affected by changed settings.
 - Use native Moodle question engine, capability checks, sesskey, grade API and transactions.

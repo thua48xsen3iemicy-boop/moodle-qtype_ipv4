@@ -21,11 +21,21 @@ class ipv4_task implements task_type {
             get_string('ipv4task', 'practicum', get_string('type_' . $this->type, 'qtype_ipv4'));
     }
 
+    /** Boolean tasks use native radio buttons; other exercises use text entry. */
+    public function answer_mode(): string {
+        return in_array($this->type, ['samesubnet', 'assignable'], true) ? 'choice' : 'text';
+    }
+
     public function template_key(array $settings): string {
         $this->validate($settings);
-        return 'practicum_ipv4_v2_' . sha1(json_encode([
-            'type' => $this->type, 'prefixes' => $settings['prefixes'],
-        ], JSON_THROW_ON_ERROR));
+        $identity = ['type' => $this->type, 'prefixes' => $settings['prefixes']];
+        $version = 'v2';
+        if ($this->answer_mode() === 'choice') {
+            // New templates only: do not edit old text questions used by existing attempts.
+            $version = 'v3';
+            $identity['answermode'] = 'choice';
+        }
+        return 'practicum_ipv4_' . $version . '_' . sha1(json_encode($identity, JSON_THROW_ON_ERROR));
     }
     public function validate(array $settings): void {
         if (empty($settings['prefixes']) || !is_array($settings['prefixes']) ||
@@ -54,7 +64,7 @@ class ipv4_task implements task_type {
                 'questiontext' => ['text' => $this->label(), 'format' => FORMAT_PLAIN],
                 'generalfeedback' => ['text' => get_string('explanation_' . $this->type, 'practicum'), 'format' => FORMAT_PLAIN],
                 'defaultmark' => 1, 'penalty' => 0, 'status' => 'ready',
-                'prefixes' => implode(',', $settings['prefixes']), 'answermode' => 'text', 'tasktype' => $this->type,
+                'prefixes' => implode(',', $settings['prefixes']), 'answermode' => $this->answer_mode(), 'tasktype' => $this->type,
             ];
             $record = \question_bank::get_qtype('ipv4')->save_question((object)['qtype' => 'ipv4'], $form);
             return \question_bank::load_question($record->id);

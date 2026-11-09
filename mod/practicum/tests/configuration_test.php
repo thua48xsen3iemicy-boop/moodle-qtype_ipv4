@@ -26,6 +26,23 @@ final class configuration_test extends \advanced_testcase {
         $this->assertInstanceOf(local\ipv4_network::class, local\registry::get('ipv4_network'));
     }
 
+    public function test_boolean_choice_templates_do_not_reuse_old_text_templates(): void {
+        foreach (\qtype_ipv4\exercise::TYPES as $type) {
+            $adapter = local\registry::get('ipv4_' . $type);
+            $settings = ['prefixes' => [26]];
+            $oldkey = 'practicum_ipv4_v2_' . sha1(json_encode([
+                'type' => $type, 'prefixes' => [26],
+            ], JSON_THROW_ON_ERROR));
+            if (in_array($type, ['samesubnet', 'assignable'], true)) {
+                $this->assertSame('choice', $adapter->answer_mode());
+                $this->assertNotSame($oldkey, $adapter->template_key($settings));
+            } else {
+                $this->assertSame('text', $adapter->answer_mode());
+                $this->assertSame($oldkey, $adapter->template_key($settings));
+            }
+        }
+    }
+
     public function test_multiselect_and_legacy_prefixes_create_valid_mixed_plan(): void {
         $blocks = json_decode(local\blueprint::from_form((object)[
             'blocktype' => ['ipv4_network', 'ipv4_hostcount', 'ipv4_assignable'],
