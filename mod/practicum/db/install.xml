@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<XMLDB PATH="mod/practicum/db" VERSION="2026110900" COMMENT="Practicum">
+  <TABLES>
+    <TABLE NAME="practicum" COMMENT="Practicum data">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+        <FIELD NAME="name" TYPE="char" NOTNULL="true" SEQUENCE="false" LENGTH="255"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="introformat" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="4" DEFAULT="0"/>
+        <FIELD NAME="mode" TYPE="char" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="training"/>
+        <FIELD NAME="blocks" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timelimit" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+        <FIELD NAME="maxattempts" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="1"/>
+        <FIELD NAME="timecreated" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="practicum_attempts" COMMENT="Practicum data">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="practicumid" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10"/>
+        <FIELD NAME="userid" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10"/>
+        <FIELD NAME="usageid" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10"/>
+        <FIELD NAME="mode" TYPE="char" NOTNULL="true" SEQUENCE="false" LENGTH="10"/>
+        <FIELD NAME="plan" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timestart" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+        <FIELD NAME="timefinish" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+        <FIELD NAME="deadline" TYPE="int" NOTNULL="true" SEQUENCE="false" LENGTH="10" DEFAULT="0"/>
+        <FIELD NAME="grade" TYPE="number" NOTNULL="false" SEQUENCE="false" DECIMALS="5" LENGTH="10"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="practicumid" TYPE="foreign" FIELDS="practicumid" REFTABLE="practicum" REFFIELDS="id"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="usageid" TYPE="foreign" FIELDS="usageid" REFTABLE="question_usages" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
