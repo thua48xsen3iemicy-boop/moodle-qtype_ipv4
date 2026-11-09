@@ -13,3 +13,8 @@
 - D008: Deploy both plugin packages from a dedicated clean main checkout. Keep
   maintenance enabled on failed install/upgrade/cache purge; automatic file-only
   rollback is insufficient after DB migrations. Database backups remain external.
+
+- D009: Discover plugins from tracked literal component declarations and emit a
+  package manifest. Resolve install directories using the target Moodle's plugin
+  type registry; reject unknown types before maintenance. A removed source plugin
+  is not automatically uninstalled from Moodle.

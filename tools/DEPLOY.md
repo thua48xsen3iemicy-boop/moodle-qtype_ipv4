@@ -1,59 +1,84 @@
-# Deploy Practicum to Moodle 5.3
+# One deployment command for all repository plugins
 
-Run `tools/deploy-practicum.sh` on the Moodle server as root:
+Run the repository-root `deploy.sh` on the Moodle server:
 
 ```sh
-sudo bash tools/deploy-practicum.sh
+sudo bash deploy.sh
 ```
 
-Defaults:
+Default target: Moodle **5.3** in `/var/www/moodle`, PHP user `www-data`.
+The script clones or fast-forwards `main` of
+`https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4.git` in the dedicated
+checkout `/opt/moodle-practicum-src`. That existing path is retained for compatibility.
 
-- Moodle: `/var/www/moodle` (5.3 layout with `public/`).
-- PHP/web user: `www-data`; CLI executable: `php` from PATH.
-- Dedicated source checkout: `/opt/moodle-practicum-src`, branch `main` of
-  `https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4.git`.
-- File backups and built archives: `/var/backups/moodle-practicum/<timestamp>.*`.
+Deployment sequence:
 
-Requires `git`, `python3`, `rsync`, `runuser`, `flock`, PHP CLI with Moodle's
-required extensions, and standard Linux/coreutils tools. For Debian/Ubuntu,
-missing deployment tools can be installed with `apt install git python3 rsync util-linux`.
-Use the PHP CLI version/extensions matching your Moodle installation.
+1. Lock out concurrent deployments and synchronise the clean source checkout.
+2. Check Moodle/version/maintenance state and read plugin-type paths from Moodle.
+3. Discover every tracked plugin `version.php` with a literal `$plugin->component`.
+4. Build one `<component>.zip` per plugin and a `manifest.json`.
+5. Validate archive contents, target paths and PHP syntax before maintenance.
+6. Enable maintenance and back up existing plugin directories.
+7. Synchronise all discovered plugins into their Moodle locations.
+8. Run the standard noninteractive Moodle upgrade, purge caches, disable maintenance.
 
-The script fetches main without discarding local changes or commits, builds the
-separate qtype and module ZIPs with `tools/package.py`, checks PHP syntax and the
-Moodle version/maintenance state, enables maintenance, backs up existing plugin
-files, synchronises both install directories, runs Moodle's normal noninteractive
-upgrade, purges caches and disables maintenance on success. PHP commands that load
-Moodle run as `www-data`. Installed plugin code is owned by root and readable by
-the web server. This is a deployment of the latest main commit at fetch time;
-its SHA and the archives are saved with the file backups.
+Currently the discovered packages are `qtype_ipv4` and `mod_practicum`.
+A new tracked `local/example/version.php` declaring `local_example`, for example,
+is automatically packaged and installed in `public/local/example`. No edits to
+`deploy.sh` are needed. Destination directories come from
+`core_component::get_plugin_types()`, not a hardcoded list. Unknown types, duplicate
+components or targets, and targets outside Moodle's public directory are rejected
+before maintenance. Custom subplugin types must already be known to Moodle.
+Removing a plugin from Git does not uninstall its existing Moodle installation.
+This updates plugins, not Moodle core itself; the CLI applies all pending core or
+plugin migrations already present in the installed Moodle tree.
+
+Packaging includes tracked files only. Nested plugins have separate archives.
+The legacy root qtype package excludes development tools, docs, other plugin
+containers and deployment metadata. Untracked work/secrets are never packaged.
+`python3 tools/package.py` can also build the archives without deploying;
+`dist/manifest.json` lists their components and source roots.
+
+## Requirements and recovery
+
+Requires root, `git`, `python3`, `rsync`, `runuser`, `flock`, PHP CLI with Moodle's
+extensions, and standard Linux/coreutils tools. On Debian/Ubuntu, missing helper
+tools can be installed with `apt install git python3 rsync util-linux`.
 
 **Make and verify your normal database backup before running.** The script backs
-up plugin files, not the database or moodledata. Upgrade runs for all pending
-Moodle/plugin changes, as Moodle's standard CLI normally does. After a migration,
-restoring just the old PHP files is not a complete database rollback.
+up plugin files, not the database or moodledata. After a migration, restoring old
+PHP files alone is not a complete rollback.
 
-On upgrade/cache/installation failure, maintenance stays enabled and the script
-prints the recovery command. Investigate and finish/recover the upgrade before
-manually disabling maintenance. If maintenance is already enabled at startup,
-the script stops before changing installed plugin files.
+Archives, previous files, source SHA, manifest and deployment plan are saved under
+`/var/backups/moodle-practicum/<timestamp>.*`. PHP loading Moodle runs as `www-data`;
+installed code is owned by root and readable by the web server.
 
-Overrides, if needed:
+If installation, upgrade or cache purge fails, maintenance stays enabled. The
+script prints the recovery command; finish/recover the upgrade before disabling
+maintenance. An already enabled maintenance state causes a pre-install stop.
+Local checkout changes or unpublished commits are not discarded.
+
+Optional configuration:
 
 ```sh
 sudo env WEB_USER=www-data PHP_BIN=/usr/bin/php8.4 \
-  MOODLE_ROOT=/var/www/moodle \
-  SOURCE_DIR=/opt/moodle-practicum-src \
-  BACKUP_ROOT=/var/backups/moodle-practicum \
-  bash tools/deploy-practicum.sh
+  MOODLE_ROOT=/var/www/moodle SOURCE_DIR=/opt/moodle-practicum-src \
+  BACKUP_ROOT=/var/backups/moodle-practicum BRANCH=main \
+  bash deploy.sh
 ```
 
-After success: course → enable editing → Add an activity or resource → Practicum
-(«Практикум» in Russian). The current Practicum module exposes the network-address
-exercise; other new qtype variants are available in the question editor and quiz
-bulk generator, and still need separate Practicum adapters/UI.
+`REPO_URL` can select another repository with the same packaging interface.
+`tools/deploy-practicum.sh` is a compatibility wrapper for use inside a checkout;
+for a standalone downloaded script, use the root `deploy.sh`.
 
-Validation: Bash syntax check and three sandboxed command-mock scenarios (success,
-upgrade failure, cache purge failure). The mock harness verifies command order,
-plugin staging, file backups, cleanup and maintenance retention on failure. No
-actual server deployment or Moodle database upgrade was run for this script.
+## Validation
+
+- `bash -n deploy.sh tools/deploy-practicum.sh`
+- `python3 -m unittest discover -s tools/tests -p test_package.py`
+- `python3 tools/tests/test_deploy.py`
+
+Packaging tests cover automatic discovery, package boundaries, untracked-file
+exclusion and duplicate rejection. Sandboxed command mocks deploy a third plugin
+without changing the deployment code, and verify success/upgrade-failure/cache-
+failure paths, backups, cleanup and maintenance retention. No actual server
+installation or Moodle database upgrade has been performed for this script.

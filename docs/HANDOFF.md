@@ -67,3 +67,16 @@ Do not overwrite other agents' notes; append decision/result with context and te
   backups are a separate operator step. Failed updates leave maintenance enabled.
 - Verified `bash -n` and mocked success/upgrade-failure/cache-failure paths.
   No real Moodle upgrade or server deployment was performed. See tools/DEPLOY.md.
+
+## Universal deploy entry point
+
+- Root `deploy.sh` replaces the hardcoded plugin pair with manifest-driven
+  discovery. `tools/package.py` builds tracked component ZIPs and manifest.json.
+- Install locations are read from Moodle core_component::get_plugin_types();
+  unknown types and unsafe targets fail before maintenance. New registered plugin
+  types/components need no shell-script edits. Moodle 5.3 remains the target.
+- Old source/backup directory defaults are kept; old tool path wraps root deploy.sh.
+- Packaging unit tests and sandboxed deployment success/upgrade-error/cache-error
+  tests passed, including an additional local_example plugin. Bash syntax passed.
+- No real Moodle/server upgrade was run. DB backups remain external; failed
+  deployment keeps maintenance enabled. See tools/DEPLOY.md.
