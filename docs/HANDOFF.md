@@ -56,3 +56,14 @@ Do not overwrite other agents' notes; append decision/result with context and te
 - Historical `work/php` and `work/moodle` described above are absent in this
   checkout. Actual Moodle DB upgrade, full plugin suites and browser checks
   remain required before release; no server deployment or PR merge performed.
+
+## Automated server deployment helper
+
+- `tools/deploy-practicum.sh` syncs the dedicated checkout of repository main,
+  builds both ZIPs, installs both plugins in Moodle 5.3's public/ layout and runs
+  maintenance → upgrade → purge caches → disable maintenance on success.
+- Defaults: /var/www/moodle, www-data, /opt/moodle-practicum-src.
+- File backups and commit/artifact records are kept outside the web root. DB
+  backups are a separate operator step. Failed updates leave maintenance enabled.
+- Verified `bash -n` and mocked success/upgrade-failure/cache-failure paths.
+  No real Moodle upgrade or server deployment was performed. See tools/DEPLOY.md.
