@@ -37,7 +37,8 @@ if ($data = $form->get_data()) {
             $prefixes[] = $prefix;
         }
     }
-    $count = \qtype_ipv4\batch_service::add($courseid, (int)$data->cmid, (int)$data->count, $prefixes, $data->answermode, $data->tasktype);
+    $count = \qtype_ipv4\batch_service::add($courseid, (int)$data->cmid, (int)$data->count, $prefixes, $data->answermode ?? 'text',
+            \qtype_ipv4\form\generate_form::selected_exercises((array)$data));
     redirect(new moodle_url('/mod/quiz/edit.php', ['cmid' => $data->cmid]),
             get_string('batchadded', 'qtype_ipv4', $count), null, \core\output\notification::NOTIFY_SUCCESS);
 }

@@ -6,8 +6,42 @@ defined('MOODLE_INTERNAL') || die();
 
 /** Generation and canonical answers for each supported exercise. */
 final class exercise {
-    public const TYPES = ['network', 'broadcast', 'firsthost', 'lasthost', 'prefixmask', 'maskprefix',
+    public const SUBNET_TYPES = ['network', 'broadcast', 'firsthost', 'lasthost', 'prefixmask', 'maskprefix',
         'samesubnet', 'assignable', 'nextip', 'previousip', 'nextsubnet', 'hostcount'];
+
+    public const COMMAND_TYPES = [
+        'addr_add',
+        'addr_del',
+        'addr_extra',
+        'addr_v6',
+        'link_up',
+        'link_down',
+        'link_mtu',
+        'route_default',
+        'route_network',
+        'route_host',
+        'route_del',
+        'route_replace',
+        'route_metric',
+        'route_table',
+        'route_blackhole',
+        'virtual_dummy',
+        'virtual_veth',
+        'virtual_vlan',
+        'virtual_bridge',
+        'virtual_master',
+        'virtual_setup_vlan',
+        'virtual_del',
+        'diag_address',
+        'diag_prefix',
+        'diag_gateway',
+        'diag_longest',
+        'diag_fix_prefix',
+        'diag_fix_link',
+        'diag_fix_gateway',
+    ];
+    public const TYPES = self::SUBNET_TYPES;
+    public const ALL_TYPES = [...self::TYPES, ...self::COMMAND_TYPES];
 
     public static function labels(): array {
         $labels = [];
@@ -18,8 +52,13 @@ final class exercise {
     }
 
     public static function generate(string $type, array $prefixes): array {
-        if (!in_array($type, self::TYPES, true)) {
+        if (!in_array($type, self::ALL_TYPES, true)) {
             throw new \InvalidArgumentException('Unknown exercise type');
+        }
+        if (in_array($type, self::COMMAND_TYPES, true)) {
+            $data = \qtype_ipv4\exercise\catalog::generate($type);
+            return $data + ['type' => $type, 'ip' => $data['params']['address'],
+                'prefix' => $data['params']['prefix'], 'choices' => []];
         }
         $data = network::generate($prefixes);
         $data['type'] = $type;
@@ -99,6 +138,9 @@ final class exercise {
     }
 
     public static function answer(array $data): string {
+        if (isset($data['kind'])) {
+            return $data['answer'];
+        }
         $ip = $data['ip'];
         $prefix = (int)$data['prefix'];
         $base = network::address($ip, $prefix);
@@ -125,6 +167,9 @@ final class exercise {
 
     public static function normalise(string $value, string $type): ?string {
         $value = trim($value);
+        if (in_array($type, self::COMMAND_TYPES, true)) {
+            return $value === '' ? null : $value;
+        }
         if (in_array($type, ['samesubnet', 'assignable'], true)) {
             $value = strtr($value, ['Д' => 'д', 'А' => 'а', 'Н' => 'н', 'Е' => 'е', 'Т' => 'т']);
             $value = strtolower($value);

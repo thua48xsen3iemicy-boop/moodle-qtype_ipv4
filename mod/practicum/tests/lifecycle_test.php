@@ -92,7 +92,9 @@ final class lifecycle_test extends \advanced_testcase {
             foreach ($usage->get_slots() as $slot) {
                 $question = $usage->get_question($slot);
                 $seen[] = 'ipv4_' . $question->tasktype;
-                $this->assertSame(26, $question->prefix);
+                if (in_array($question->tasktype, \qtype_ipv4\exercise::SUBNET_TYPES, true)) {
+                    $this->assertSame(26, $question->prefix);
+                }
                 $boolean = in_array($question->tasktype, ['samesubnet', 'assignable'], true);
                 $this->assertSame($boolean ? 'choice' : 'text', $question->answermode);
                 if ($boolean) {

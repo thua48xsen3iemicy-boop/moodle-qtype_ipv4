@@ -18,7 +18,7 @@ require_once($CFG->dirroot . '/question/type/ipv4/question.php');
 #[\PHPUnit\Framework\Attributes\CoversClass(\qtype_ipv4_question::class)]
 final class question_test extends \advanced_testcase {
     public function test_state_and_grading_for_both_modes(): void {
-        foreach (\qtype_ipv4\exercise::TYPES as $type) {
+        foreach (\qtype_ipv4\exercise::SUBNET_TYPES as $type) {
             foreach (['text', 'choice'] as $mode) {
                 $question = new \qtype_ipv4_question();
                 $question->tasktype = $type;

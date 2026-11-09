@@ -142,11 +142,40 @@ final class batch_test extends \advanced_testcase {
         }
     }
 
+    public function test_mixed_batch_is_balanced_and_grouped_in_question_bank(): void {
+        global $DB;
+        $quiz = $this->make_quiz();
+        $exercises = ['network', 'addr_add', 'route_default', 'virtual_setup_vlan', 'diag_longest'];
+        batch_service::add($quiz->course, $quiz->cmid, 12, [24], 'choice', $exercises);
+        $counts = [];
+        $context = \context_module::instance($quiz->cmid);
+        $structure = \mod_quiz\question\bank\qbank_helper::get_question_structure($quiz->id, $context);
+        foreach ($structure as $item) {
+            $question = \question_bank::load_question($item->questionid);
+            $counts[$question->tasktype] = ($counts[$question->tasktype] ?? 0) + 1;
+            $this->assertSame($question->tasktype === 'network' ? 'choice' : 'text', $question->answermode);
+        }
+        $this->assertSame([3, 3, 2, 2, 2], array_values($counts));
+        $this->assertSame(5, $DB->count_records_select('question_categories',
+                'contextid = ? AND idnumber LIKE ?', [$context->id, 'qtype_ipv4_%']));
+        batch_service::add($quiz->course, $quiz->cmid, 1, [], 'text', ['addr_add']);
+        $this->assertSame(5, $DB->count_records_select('question_categories',
+                'contextid = ? AND idnumber LIKE ?', [$context->id, 'qtype_ipv4_%']));
+        foreach ([[], ['unknown'], ['addr_add', 'route_host']] as $invalid) {
+            try {
+                batch_service::add($quiz->course, $quiz->cmid, 1, [], 'text', $invalid);
+                $this->fail('Invalid selection must fail');
+            } catch (\invalid_parameter_exception $error) {
+                $this->assertSame(13, $DB->count_records('quiz_slots', ['quizid' => $quiz->id]));
+            }
+        }
+    }
+
     public function test_form_validates_count_prefixes_and_course_quiz(): void {
         $quiz = $this->make_quiz();
         $custom = ['courseid' => $quiz->course, 'quizzes' => [$quiz->cmid => $quiz->name]];
         $data = ['courseid' => $quiz->course, 'cmid' => $quiz->cmid, 'count' => 15,
-            'prefix8' => 0, 'prefix16' => 0, 'prefix24' => 1, 'answermode' => 'choice'];
+            'prefix8' => 0, 'prefix16' => 0, 'prefix24' => 1, 'answermode' => 'choice', 'task_network' => 1];
         \qtype_ipv4\form\generate_form::mock_submit($data);
         $form = new \qtype_ipv4\form\generate_form(null, $custom);
         $this->assertTrue($form->is_validated());

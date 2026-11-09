@@ -12,7 +12,7 @@ final class registry {
         if ($type === 'ipv4_network') {
             return new ipv4_network();
         }
-        foreach (\qtype_ipv4\exercise::TYPES as $exercise) {
+        foreach (\qtype_ipv4\exercise::ALL_TYPES as $exercise) {
             if ($type === 'ipv4_' . $exercise) {
                 return new ipv4_task($exercise);
             }
@@ -21,9 +21,9 @@ final class registry {
     }
     public static function labels(): array {
         $labels = [];
-        foreach (\qtype_ipv4\exercise::TYPES as $type) {
+        foreach (\qtype_ipv4\exercise::ALL_TYPES as $type) {
             $id = 'ipv4_' . $type;
-            $labels[$id] = self::get($id)->label();
+            $labels[$id] = \qtype_ipv4\exercise\catalog::options()[$type];
         }
         return $labels;
     }
