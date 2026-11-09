@@ -9,3 +9,7 @@
 - D006: Future GNS3/VM tasks use an isolated backend contract, not local shell calls.
 - D007: Explicit registry initially; Moodle subplugin ecosystem can be introduced
   when there is a real independently installable task family.
+
+- D008: Deploy both plugin packages from a dedicated clean main checkout. Keep
+  maintenance enabled on failed install/upgrade/cache purge; automatic file-only
+  rollback is insufficient after DB migrations. Database backups remain external.
