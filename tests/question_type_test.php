@@ -53,14 +53,15 @@ final class question_type_test extends \advanced_testcase {
         $generator = $this->getDataGenerator()->get_plugin_generator('core_question');
         $category = $generator->create_question_category();
         $record = $generator->create_question('ipv4', 'network',
-                ['category' => $category->id, 'prefixes' => '8,24', 'answermode' => 'choice']);
+                ['category' => $category->id, 'prefixes' => '8,26', 'answermode' => 'choice', 'tasktype' => 'hostcount']);
         $data = \question_bank::load_question_data($record->id);
         $format = new \qformat_xml();
         $xml = $format->writequestion($data);
         $parsed = (new \core\xml_parser())->parse($xml);
         $imported = \question_bank::get_qtype('ipv4')->import_from_xml($parsed['question'], null, $format);
         $this->assertSame('ipv4', $imported->qtype);
-        $this->assertSame('8,24', $imported->prefixes);
+        $this->assertSame('8,26', $imported->prefixes);
+        $this->assertSame('hostcount', $imported->tasktype);
         $this->assertSame('choice', $imported->answermode);
         $this->assertSame($data->name, $imported->name);
     }

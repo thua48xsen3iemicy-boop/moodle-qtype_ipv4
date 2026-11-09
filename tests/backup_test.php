@@ -26,7 +26,7 @@ final class backup_test extends \advanced_testcase {
         $questions = $generator->get_plugin_generator('core_question');
         $category = $questions->create_question_category(['contextid' => \context_module::instance($bank->cmid)->id]);
         $original = $questions->create_question('ipv4', 'network',
-                ['category' => $category->id, 'prefixes' => '8,24', 'answermode' => 'choice']);
+                ['category' => $category->id, 'prefixes' => '8,26', 'answermode' => 'choice', 'tasktype' => 'nextsubnet']);
         $target = $generator->create_course();
         $backup = new \backup_controller(\backup::TYPE_1COURSE, $course->id, \backup::FORMAT_MOODLE,
                 \backup::INTERACTIVE_NO, \backup::MODE_IMPORT, $USER->id);
@@ -41,7 +41,8 @@ final class backup_test extends \advanced_testcase {
         $options = $DB->get_records_select('qtype_ipv4_options', 'questionid <> ?', [$original->id]);
         $this->assertCount(1, $options);
         $restored = reset($options);
-        $this->assertSame('8,24', $restored->prefixes);
+        $this->assertSame('8,26', $restored->prefixes);
+        $this->assertSame('nextsubnet', $restored->tasktype);
         $this->assertSame('choice', $restored->answermode);
     }
 }

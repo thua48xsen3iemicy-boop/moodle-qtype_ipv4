@@ -83,6 +83,22 @@ final class batch_test extends \advanced_testcase {
         $this->assertSame(3.0, (float)$DB->get_field('quiz', 'sumgrades', ['id' => $quiz->id]));
     }
 
+    public function test_each_exercise_type_is_saved_in_bulk(): void {
+        $quiz = $this->make_quiz();
+        foreach (exercise::TYPES as $type) {
+            $this->assertSame(1, batch_service::add($quiz->course, $quiz->cmid, 1, [26], 'choice', $type));
+        }
+        $context = \context_module::instance($quiz->cmid);
+        $structure = \mod_quiz\question\bank\qbank_helper::get_question_structure($quiz->id, $context);
+        $types = [];
+        foreach ($structure as $item) {
+            $question = \question_bank::load_question($item->questionid);
+            $types[] = $question->tasktype;
+            $this->assertSame('26', $question->prefixes);
+        }
+        $this->assertSame(exercise::TYPES, $types);
+    }
+
     public function test_student_cannot_generate_questions(): void {
         global $DB;
         $quiz = $this->make_quiz();
@@ -103,7 +119,7 @@ final class batch_test extends \advanced_testcase {
         $quiz = $this->make_quiz();
         $before = $DB->count_records('question');
         foreach ([[0, [24], 'text'], [101, [24], 'text'], [15, [], 'text'],
-                [15, [25], 'text'], [15, [24], 'invalid']] as [$count, $prefixes, $mode]) {
+                [15, [31], 'text'], [15, [24], 'invalid']] as [$count, $prefixes, $mode]) {
             try {
                 batch_service::add($quiz->course, $quiz->cmid, $count, $prefixes, $mode);
                 $this->fail('Invalid settings must be rejected');

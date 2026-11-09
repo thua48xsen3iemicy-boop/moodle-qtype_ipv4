@@ -82,6 +82,6 @@ final class network_test extends \advanced_testcase {
 
     public function test_unsupported_prefix_rejected(): void {
         $this->expectException(\InvalidArgumentException::class);
-        network::address('10.0.0.1', 25);
+        network::address('10.0.0.1', 31);
     }
 }

@@ -13,6 +13,7 @@ require_once($CFG->dirroot . '/backup/moodle2/restore_qtype_extrafields_plugin.c
 /** Standard backup/restore support for the extra options table. */
 class restore_qtype_ipv4_plugin extends restore_qtype_extrafields_plugin {
     public function process_ipv4($data) {
+        $data['tasktype'] = $data['tasktype'] ?? 'network';
         $this->really_process_extra_question_fields($data);
     }
 }

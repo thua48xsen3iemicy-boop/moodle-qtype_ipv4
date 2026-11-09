@@ -32,12 +32,12 @@ if ($form->is_cancelled()) {
 if ($data = $form->get_data()) {
     require_sesskey();
     $prefixes = [];
-    foreach ([8, 16, 24] as $prefix) {
+    foreach (\qtype_ipv4\network::PREFIXES as $prefix) {
         if (!empty($data->{'prefix' . $prefix})) {
             $prefixes[] = $prefix;
         }
     }
-    $count = \qtype_ipv4\batch_service::add($courseid, (int)$data->cmid, (int)$data->count, $prefixes, $data->answermode);
+    $count = \qtype_ipv4\batch_service::add($courseid, (int)$data->cmid, (int)$data->count, $prefixes, $data->answermode, $data->tasktype);
     redirect(new moodle_url('/mod/quiz/edit.php', ['cmid' => $data->cmid]),
             get_string('batchadded', 'qtype_ipv4', $count), null, \core\output\notification::NOTIFY_SUCCESS);
 }

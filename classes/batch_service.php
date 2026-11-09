@@ -29,11 +29,11 @@ final class batch_service {
     }
 
     /** Append templates atomically; concrete exercises are generated when students start attempts. */
-    public static function add(int $courseid, int $cmid, int $count, array $prefixes, string $mode): int {
+    public static function add(int $courseid, int $cmid, int $count, array $prefixes, string $mode, string $tasktype = 'network'): int {
         global $CFG, $DB;
         require_once($CFG->libdir . '/questionlib.php');
         require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-        if ($count < 1 || $count > self::MAX_COUNT || !$prefixes || array_diff($prefixes, network::PREFIXES) ||
+        if (!in_array($tasktype, exercise::TYPES, true) || $count < 1 || $count > self::MAX_COUNT || !$prefixes || array_diff($prefixes, network::PREFIXES) ||
                 !in_array($mode, ['text', 'choice'], true)) {
             throw new \invalid_parameter_exception('Invalid IPv4 batch settings');
         }
@@ -64,6 +64,7 @@ final class batch_service {
                         'generalfeedback' => ['text' => '', 'format' => FORMAT_PLAIN],
                         'defaultmark' => 1, 'penalty' => 0.3333333,
                         'status' => \core_question\local\bank\question_version_status::QUESTION_STATUS_READY,
+                        'tasktype' => $tasktype,
                         'prefixes' => implode(',', array_unique($prefixes)), 'answermode' => $mode,
                     ];
                     $question = $qtype->save_question((object)['qtype' => 'ipv4'], $form);
