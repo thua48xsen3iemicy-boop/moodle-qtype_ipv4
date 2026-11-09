@@ -18,3 +18,8 @@
   package manifest. Resolve install directories using the target Moodle's plugin
   type registry; reject unknown types before maintenance. A removed source plugin
   is not automatically uninstalled from Moodle.
+
+- D010: Practicum exposes all supported qtype IPv4 exercise ids through one
+  text-only adapter. Preserve ipv4_network and old plans/usages; version new
+  template keys as v2 and include task type so different exercises cannot collide.
+  Prefix settings support /1–/30; legacy comma-separated form data stays readable.

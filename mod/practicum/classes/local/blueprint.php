@@ -12,8 +12,18 @@ final class blueprint {
         $blocks = [];
         foreach (($data->blockcount ?? []) as $i => $count) {
             if ((int)$count === 0) { continue; }
+            $selected = $data->blockprefix[$i] ?? [];
+            if (!is_array($selected)) {
+                // Accept legacy comma-separated submissions and saved configurations.
+                $selected = explode(',', $selected);
+            }
+            foreach ($selected as $prefix) {
+                if (!preg_match('/^([1-9]|[12][0-9]|30)$/D', (string)$prefix)) {
+                    throw new \invalid_parameter_exception('Invalid prefix');
+                }
+            }
             $blocks[] = ['type' => $data->blocktype[$i], 'count' => (int)$count,
-                'prefixes' => array_map('intval', explode(',', $data->blockprefix[$i]))];
+                'prefixes' => array_values(array_unique(array_map('intval', $selected)))];
         }
         self::validate($blocks);
         return json_encode($blocks, JSON_THROW_ON_ERROR);

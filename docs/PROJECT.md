@@ -2,7 +2,8 @@
 
 Moodle 5.3, course activity «Практикум» (Practicum). Teacher adds the activity,
 configures blocks and counts, and selects training or assessment. No manual bank
-population. Initial task: calculate IPv4 network address using /8, /16, /24.
+population. All 12 IPv4 exercise variants are available as mixed blocks with
+independently selected allowed prefixes /1–/30.
 Future families: Linux commands, Linux paths and isolated VM lab tasks.
 
 Confirmed requirements: both training and assessment, mixed task blocks, manual

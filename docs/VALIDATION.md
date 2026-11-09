@@ -21,3 +21,17 @@ Russian core language pack, PHP 8.3 integration. No claim of GNS3/terminal integ
 
 Earlier qtype checks remain documented in root TESTING.md. Work logs, environment
 and screenshots are kept in ignored work/ and are never shipped in plugin archives.
+
+## Practicum 0.2.0 IPv4 selector expansion
+
+PHP 8.4.24 syntax checked. Five configuration test methods were executed in an
+isolated assertion harness: 62 assertions, all passed. Together with existing
+isolated qtype calculation/state/grading checks: 64,365 assertions. A mocked
+adapter save/reuse run created 12 separate text-only templates with correct
+tasktype/prefix settings. These checks do not establish Moodle integration.
+
+The new mixed-activity lifecycle PHPUnit test covers all variants in both modes,
+resume after activity settings changes, preserved conditions and 100% grading.
+It was added but not run: this checkout lacks Moodle core/DB and the historical
+work/moodle environment. Browser multiselect, actual upgrade and full PHPUnit
+remain unverified for this version.

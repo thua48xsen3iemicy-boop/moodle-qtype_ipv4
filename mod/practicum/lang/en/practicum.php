@@ -41,3 +41,17 @@ $string['practicum:attempt'] = 'Attempt practicum';
 $string['practicum:viewreports'] = 'View all attempts';
 $string['privacy:metadata'] = 'Stores ownership, generated plans, answers, attempt timing and assessment grades.';
 $string['grade'] = 'Grade';
+
+$string['ipv4task'] = 'IPv4: {$a}';
+$string['explanation_network'] = 'Apply the subnet mask to the IPv4 address: all host bits become zero.';
+$string['explanation_broadcast'] = 'Set all host bits in the network address to one.';
+$string['explanation_firsthost'] = 'The first host address is the network address plus one.';
+$string['explanation_lasthost'] = 'The last host address is the broadcast address minus one.';
+$string['explanation_prefixmask'] = 'The first N mask bits are one and the remaining bits are zero, where N is the prefix.';
+$string['explanation_maskprefix'] = 'The prefix is the number of one bits in the contiguous subnet mask.';
+$string['explanation_samesubnet'] = 'Apply the same mask to both addresses and compare the network addresses.';
+$string['explanation_assignable'] = 'The address must belong to the subnet and differ from its network and broadcast addresses.';
+$string['explanation_nextip'] = 'Add one to the address, carrying to the previous octet after 255.';
+$string['explanation_previousip'] = 'Subtract one from the address, borrowing from the previous octet before zero.';
+$string['explanation_nextsubnet'] = 'The next subnet starts immediately after the current broadcast; retain the prefix.';
+$string['explanation_hostcount'] = 'Assignable hosts in a conventional subnet: 2^(32 − prefix) − 2, excluding network and broadcast.';
