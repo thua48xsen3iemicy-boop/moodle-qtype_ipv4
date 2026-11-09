@@ -44,6 +44,11 @@ class qtype_ipv4_renderer extends qtype_renderer {
             $html .= html_writer::tag('label', get_string($label, 'qtype_ipv4'), ['for' => $name]);
             $attrs = ['type' => 'text', 'name' => $name, 'id' => $name, 'value' => $current ?? '',
                 'class' => 'form-control', 'size' => 18, 'autocomplete' => 'off', 'spellcheck' => 'false'];
+            if ($iscommand) {
+                // Boost limits inputs with a size attribute to their character width.
+                unset($attrs['size']);
+                $attrs['class'] .= ' w-100';
+            }
             if ($options->readonly) {
                 $attrs['readonly'] = 'readonly';
             }
