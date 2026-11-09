@@ -15,7 +15,7 @@ class qtype_ipv4_renderer extends qtype_renderer {
         $question = $qa->get_question();
         $name = $qa->get_qt_field_name('answer');
         $current = $qa->get_last_qt_var('answer');
-        $task = get_string('task', 'qtype_ipv4', (object)['ip' => $question->ip, 'prefix' => $question->prefix]);
+        $task = $question->task_text();
         $html = html_writer::div($question->format_questiontext($qa), 'qtext');
         $html .= html_writer::tag('p', s($task));
         if ($question->answermode === 'choice') {
@@ -31,7 +31,7 @@ class qtype_ipv4_renderer extends qtype_renderer {
                     $attrs['disabled'] = 'disabled';
                 }
                 $html .= html_writer::div(html_writer::empty_tag('input', $attrs) . ' ' .
-                        html_writer::tag('label', s($choice), ['for' => $id]));
+                        html_writer::tag('label', s(\qtype_ipv4\exercise::display($choice)), ['for' => $id]));
             }
             $html .= html_writer::end_tag('fieldset');
         } else {
@@ -54,6 +54,6 @@ class qtype_ipv4_renderer extends qtype_renderer {
     }
 
     public function correct_response(question_attempt $qa) {
-        return get_string('correctansweris', 'qtype_ipv4', s($qa->get_question()->get_correct_response()['answer']));
+        return get_string('correctansweris', 'qtype_ipv4', s(\qtype_ipv4\exercise::display($qa->get_question()->get_correct_response()['answer'])));
     }
 }

@@ -22,9 +22,13 @@ class qtype_ipv4_question extends question_graded_automatically {
     public $prefix;
     /** @var string[] saved answer order */
     public $choices = [];
+    /** @var string exercise kind */
+    public $tasktype = 'network';
+    /** @var array persisted exercise parameters */
+    public $exercise = [];
 
     public function start_attempt(question_attempt_step $step, $variant) {
-        $data = \qtype_ipv4\network::generate(array_map('intval', explode(',', $this->prefixes)));
+        $data = \qtype_ipv4\exercise::generate($this->tasktype, array_map('intval', explode(',', $this->prefixes)));
         $data['mode'] = $this->answermode;
         $step->set_qt_var('_ipv4', json_encode($data, JSON_THROW_ON_ERROR));
         $this->apply_attempt_state($step);
@@ -33,6 +37,8 @@ class qtype_ipv4_question extends question_graded_automatically {
     public function apply_attempt_state(question_attempt_step $step) {
         // Never regenerate here: reload, review and regrade must use the original exercise.
         $data = json_decode($step->get_qt_var('_ipv4'), true, 512, JSON_THROW_ON_ERROR);
+        $this->exercise = $data;
+        $this->tasktype = $data['type'] ?? 'network';
         $this->ip = $data['ip'];
         $this->prefix = (int)$data['prefix'];
         $this->choices = $data['choices'];
@@ -44,11 +50,12 @@ class qtype_ipv4_question extends question_graded_automatically {
     }
 
     public function get_correct_response() {
-        return ['answer' => \qtype_ipv4\network::address($this->ip, $this->prefix)];
+        $data = $this->exercise ?: ['ip' => $this->ip, 'prefix' => $this->prefix, 'type' => $this->tasktype];
+        return ['answer' => \qtype_ipv4\exercise::answer($data)];
     }
 
     public function is_complete_response(array $response) {
-        $answer = \qtype_ipv4\network::normalise((string)($response['answer'] ?? ''));
+        $answer = \qtype_ipv4\exercise::normalise((string)($response['answer'] ?? ''), $this->tasktype);
         return $answer !== null && ($this->answermode !== 'choice' || in_array($answer, $this->choices, true));
     }
 
@@ -60,12 +67,13 @@ class qtype_ipv4_question extends question_graded_automatically {
         if ($this->is_complete_response($response)) {
             return '';
         }
-        return get_string($this->answermode === 'choice' ? 'selectanswer' : 'invalidipv4', 'qtype_ipv4');
+        return get_string($this->answermode === 'choice' ? 'selectanswer' : 'invalidanswer', 'qtype_ipv4');
     }
 
     public function grade_response(array $response) {
         $correct = $this->is_complete_response($response) &&
-                trim($response['answer']) === $this->get_correct_response()['answer'];
+                \qtype_ipv4\exercise::normalise((string)$response['answer'], $this->tasktype) ===
+                    $this->get_correct_response()['answer'];
         $fraction = $correct ? 1.0 : 0.0;
         return [$fraction, question_state::graded_state_for_fraction($fraction)];
     }
@@ -78,8 +86,12 @@ class qtype_ipv4_question extends question_graded_automatically {
         return trim($prevresponse['answer'] ?? '') === trim($newresponse['answer'] ?? '');
     }
 
+    public function task_text(): string {
+        $data = $this->exercise + ['ip' => $this->ip, 'prefix' => $this->prefix];
+        return get_string('task_' . $this->tasktype, 'qtype_ipv4', (object)$data);
+    }
+
     public function get_question_summary() {
-        return parent::get_question_summary() . ' ' . get_string('task', 'qtype_ipv4',
-                (object)['ip' => $this->ip, 'prefix' => $this->prefix]);
+        return parent::get_question_summary() . ' ' . $this->task_text();
     }
 }

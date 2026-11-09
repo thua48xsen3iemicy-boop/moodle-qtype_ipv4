@@ -13,12 +13,14 @@ require_once($CFG->libdir . '/questionlib.php');
 /** Question-bank persistence through the standard extra fields API. */
 class qtype_ipv4 extends question_type {
     public function extra_question_fields() {
-        return ['qtype_ipv4_options', 'prefixes', 'answermode'];
+        return ['qtype_ipv4_options', 'prefixes', 'answermode', 'tasktype'];
     }
 
     public function save_question_options($question) {
+        $question->tasktype = $question->tasktype ?? 'network';
         $prefixes = array_filter(explode(',', $question->prefixes), 'strlen');
-        if (!$prefixes || array_diff($prefixes, ['8', '16', '24']) ||
+        if (!in_array($question->tasktype, \qtype_ipv4\exercise::TYPES, true) || !$prefixes ||
+                array_diff($prefixes, array_map('strval', \qtype_ipv4\network::PREFIXES)) ||
                 !in_array($question->answermode, ['text', 'choice'], true)) {
             throw new invalid_parameter_exception('Invalid IPv4 question settings');
         }
@@ -34,10 +36,12 @@ class qtype_ipv4 extends question_type {
         $question->qtype = 'ipv4';
         $question->prefixes = $format->getpath($data, ['#', 'prefixes', 0, '#'], '8,16,24');
         $question->answermode = $format->getpath($data, ['#', 'answermode', 0, '#'], 'text');
+        $question->tasktype = $format->getpath($data, ['#', 'tasktype', 0, '#'], 'network');
         return $question;
     }
 
     public function get_random_guess_score($questiondata) {
-        return $questiondata->options->answermode === 'choice' ? 0.25 : 0;
+        return $questiondata->options->answermode === 'choice' ?
+            (in_array($questiondata->options->tasktype ?? 'network', ['samesubnet', 'assignable'], true) ? 0.5 : 0.25) : 0;
     }
 }

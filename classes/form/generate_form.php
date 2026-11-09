@@ -24,10 +24,13 @@ class generate_form extends \moodleform {
         $mform->setType('count', PARAM_INT);
         $mform->setDefault('count', 15);
         $mform->addRule('count', null, 'required', null, 'client');
+        $mform->addElement('select', 'tasktype', get_string('tasktype', 'qtype_ipv4'),
+            \qtype_ipv4\exercise::labels());
+        $mform->setDefault('tasktype', 'network');
         $elements = [];
-        foreach ([8, 16, 24] as $prefix) {
+        foreach (\qtype_ipv4\network::PREFIXES as $prefix) {
             $elements[] = $mform->createElement('advcheckbox', 'prefix' . $prefix, '', '/' . $prefix);
-            $mform->setDefault('prefix' . $prefix, 1);
+            $mform->setDefault('prefix' . $prefix, in_array($prefix, [8, 16, 24]) ? 1 : 0);
         }
         $mform->addGroup($elements, 'allowedprefixes', get_string('prefixes', 'qtype_ipv4'), ' ', false);
         $mform->addElement('select', 'answermode', get_string('answermode', 'qtype_ipv4'), [
@@ -40,7 +43,7 @@ class generate_form extends \moodleform {
         global $CFG;
         require_once($CFG->dirroot . '/mod/quiz/locallib.php');
         $errors = parent::validation($data, $files);
-        if (empty($data['prefix8']) && empty($data['prefix16']) && empty($data['prefix24'])) {
+        if (!array_filter(\qtype_ipv4\network::PREFIXES, fn($p) => !empty($data['prefix' . $p]))) {
             $errors['allowedprefixes'] = get_string('chooseprefix', 'qtype_ipv4');
         }
         if ((int)$data['count'] < 1 || (int)$data['count'] > \qtype_ipv4\batch_service::MAX_COUNT) {
@@ -53,6 +56,9 @@ class generate_form extends \moodleform {
             if (quiz_has_attempts($cm->instance)) {
                 $errors['cmid'] = get_string('batchhasattempts', 'qtype_ipv4');
             }
+        }
+        if (!in_array($data['tasktype'] ?? 'network', \qtype_ipv4\exercise::TYPES, true)) {
+            $errors['tasktype'] = get_string('invalidanswer', 'qtype_ipv4');
         }
         return $errors;
     }
