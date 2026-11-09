@@ -80,3 +80,21 @@ Do not overwrite other agents' notes; append decision/result with context and te
   tests passed, including an additional local_example plugin. Bash syntax passed.
 - No real Moodle/server upgrade was run. DB backups remain external; failed
   deployment keeps maintenance enabled. See tools/DEPLOY.md.
+
+## Practicum 0.2.0: all IPv4 exercise variants
+
+- Fixes the missing activity selector wiring: registry now exposes every one of
+  qtype_ipv4's 12 variants. Shared ipv4_task adapter explicitly saves tasktype and
+  forces text answers; ipv4_network class/id remains compatible with old plans.
+- Per-block prefix multiselect supports /1–/30; old saved block JSON and legacy
+  comma-separated submissions are accepted. Added type-specific RU/EN explanations.
+- Template identity v2 includes task type and prefixes; old templates/usages are
+  untouched. Module version 0.2.0 requires qtype_ipv4 >= 2026110902. No table changes.
+- Validation: PHP 8.4.24 syntax on all Practicum files; 5 new configuration tests
+  run in an isolated harness (62 assertions); existing isolated qtype checks still
+  pass (64,365 total). Isolated adapter save/cache contract verifies 12 distinct
+  manual-answer templates. These use Moodle stand-ins, not a real DB.
+- Added real-Moodle mixed-activity lifecycle test for all types in training/exam,
+  reload, settings changes and full grading; NOT RUN: this checkout has no Moodle
+  installation/DB. Browser form, upgrade and actual PHPUnit integration remain
+  required. Deploy after merge with root deploy.sh and open activity block settings.

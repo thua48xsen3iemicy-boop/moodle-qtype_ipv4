@@ -41,3 +41,17 @@ $string['practicum:attempt'] = 'Проходить практикум';
 $string['practicum:viewreports'] = 'Просматривать все попытки';
 $string['privacy:metadata'] = 'Хранит владельца, планы заданий, ответы, время попыток и оценки контрольных.';
 $string['grade'] = 'Оценка';
+
+$string['ipv4task'] = 'IPv4: {$a}';
+$string['explanation_network'] = 'Примените маску к IPv4-адресу: биты части узла должны стать нулями.';
+$string['explanation_broadcast'] = 'В адресе сети замените все биты части узла единицами.';
+$string['explanation_firsthost'] = 'Первый адрес узла — адрес сети плюс один.';
+$string['explanation_lasthost'] = 'Последний адрес узла — широковещательный адрес минус один.';
+$string['explanation_prefixmask'] = 'Первые N бит маски равны единице, остальные — нулю; N — префикс.';
+$string['explanation_maskprefix'] = 'Префикс равен числу единичных бит в непрерывной маске.';
+$string['explanation_samesubnet'] = 'Примените одинаковую маску к обоим адресам и сравните полученные адреса сети.';
+$string['explanation_assignable'] = 'Адрес должен принадлежать указанной подсети и отличаться от адреса сети и broadcast.';
+$string['explanation_nextip'] = 'Прибавьте один к адресу. После октета 255 выполняется перенос в предыдущий октет.';
+$string['explanation_previousip'] = 'Вычтите один из адреса. Перед октетом 0 выполняется заём из предыдущего октета.';
+$string['explanation_nextsubnet'] = 'Следующая подсеть начинается сразу после broadcast текущей подсети; префикс сохраняется.';
+$string['explanation_hostcount'] = 'Для обычной подсети число узлов равно 2^(32 − префикс) − 2: исключены адрес сети и broadcast.';

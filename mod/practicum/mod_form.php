@@ -22,16 +22,21 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->setDefault('maxattempts', 1);
         $m->hideIf('maxattempts', 'mode', 'eq', 'training');
         $m->addElement('header', 'blocksheading', get_string('blocks', 'practicum'));
+        $prefixes = [];
+        foreach (\qtype_ipv4\network::PREFIXES as $prefix) {
+            $prefixes[$prefix] = '/' . $prefix;
+        }
+        $prefixselect = $m->createElement('select', 'blockprefix', get_string('prefixes', 'practicum'), $prefixes);
+        $prefixselect->setMultiple(true);
         $elements = [
             $m->createElement('select', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
             $m->createElement('text', 'blockcount', get_string('count', 'practicum')),
-            $m->createElement('select', 'blockprefix', get_string('prefixes', 'practicum'),
-                ['8,16,24' => '/8, /16, /24', '8' => '/8', '16' => '/16', '24' => '/24',
-                 '8,16' => '/8, /16', '8,24' => '/8, /24', '16,24' => '/16, /24']),
+            $prefixselect,
         ];
         $blocks = empty($this->current->blocks) ? [] : json_decode($this->current->blocks, true);
         $this->repeat_elements($elements, max(1, count($blocks)),
-            ['blockcount' => ['type' => PARAM_INT, 'default' => 15]], 'blockrepeats', 'addblock', 1,
+            ['blockcount' => ['type' => PARAM_INT, 'default' => 15],
+             'blockprefix' => ['default' => [8, 16, 24]]], 'blockrepeats', 'addblock', 1,
             get_string('addblock', 'practicum'), true);
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
@@ -41,7 +46,7 @@ class mod_practicum_mod_form extends moodleform_mod {
             foreach (json_decode($defaults['blocks'], true) as $i => $block) {
                 $defaults['blocktype'][$i] = $block['type'];
                 $defaults['blockcount'][$i] = $block['count'];
-                $defaults['blockprefix'][$i] = implode(',', $block['prefixes']);
+                $defaults['blockprefix'][$i] = $block['prefixes'];
             }
         }
     }

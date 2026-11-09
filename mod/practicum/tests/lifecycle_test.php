@@ -67,6 +67,58 @@ final class lifecycle_test extends \advanced_testcase {
         $this->assertGreaterThan(0,$a->timefinish);$this->assertEquals(0,$a->grade);
         $this->assertEquals($a,local\attempts::process($a->id,$post,true));
     }
+    public function test_all_exercises_in_mixed_activity_resume_and_grade_in_both_modes(): void {
+        global $DB;
+        $this->resetAfterTest();
+        foreach (['training', 'exam'] as $mode) {
+            $this->setAdminUser();
+            $g = $this->getDataGenerator();
+            $course = $g->create_course();
+            $types = array_keys(local\registry::labels());
+            $p = $g->create_module('practicum', [
+                'course' => $course->id, 'mode' => $mode,
+                'blocktype' => $types, 'blockcount' => array_fill(0, count($types), 1),
+                'blockprefix' => array_fill(0, count($types), [26]),
+            ]);
+            $student = $g->create_user();
+            $g->enrol_user($student->id, $course->id, 'student');
+            $this->setUser($student);
+            $context = \context_module::instance($p->cmid);
+            $attempt = local\attempts::start($p, $context, $student->id);
+            $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+            $this->assertCount(count($types), $usage->get_slots());
+            $seen = [];
+            $snapshots = [];
+            foreach ($usage->get_slots() as $slot) {
+                $question = $usage->get_question($slot);
+                $seen[] = 'ipv4_' . $question->tasktype;
+                $this->assertSame(26, $question->prefix);
+                $this->assertSame('text', $question->answermode);
+                $this->assertStringNotContainsString('[[', $question->task_text());
+                $snapshots[$slot] = $question->exercise;
+                $response = $question->get_correct_response();
+                if ($mode === 'training') {
+                    $response['-submit'] = 1;
+                }
+                $usage->process_action($slot, $response);
+            }
+            $this->assertEqualsCanonicalizing($types, $seen);
+            \question_engine::save_questions_usage_by_activity($usage);
+            // Edits to activity settings must not change a running attempt.
+            $DB->set_field('practicum', 'blocks', json_encode([
+                ['type' => 'ipv4_network', 'count' => 1, 'prefixes' => [8]],
+            ]), ['id' => $p->id]);
+            $changed = $DB->get_record('practicum', ['id' => $p->id]);
+            $this->assertEquals($attempt->id, local\attempts::start($changed, $context, $student->id)->id);
+            $reloaded = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+            foreach ($reloaded->get_slots() as $slot) {
+                $this->assertSame($snapshots[$slot], $reloaded->get_question($slot)->exercise);
+            }
+            $finished = local\attempts::process($attempt->id, null, true);
+            $this->assertEquals(100, $finished->grade);
+        }
+    }
+
     public function test_unknown_family_rejected(): void {
         $this->expectException(\invalid_parameter_exception::class);
         local\blueprint::plan([['type'=>'shell_exec','count'=>1,'prefixes'=>[24]]]);

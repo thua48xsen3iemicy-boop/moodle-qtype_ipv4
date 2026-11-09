@@ -9,12 +9,22 @@ defined('MOODLE_INTERNAL') || die();
 /** Explicit allowlist: never instantiate class names received from a request. */
 final class registry {
     public static function get(string $type): task_type {
-        return match ($type) {
-            'ipv4_network' => new ipv4_network(),
-            default => throw new \invalid_parameter_exception('Unknown task type'),
-        };
+        if ($type === 'ipv4_network') {
+            return new ipv4_network();
+        }
+        foreach (\qtype_ipv4\exercise::TYPES as $exercise) {
+            if ($type === 'ipv4_' . $exercise) {
+                return new ipv4_task($exercise);
+            }
+        }
+        throw new \invalid_parameter_exception('Unknown task type');
     }
     public static function labels(): array {
-        return ['ipv4_network' => self::get('ipv4_network')->label()];
+        $labels = [];
+        foreach (\qtype_ipv4\exercise::TYPES as $type) {
+            $id = 'ipv4_' . $type;
+            $labels[$id] = self::get($id)->label();
+        }
+        return $labels;
     }
 }
