@@ -40,3 +40,19 @@ native activity creation and student assessment save/reload/finish (100/100) tes
 ## Agent cooperation
 No active delegated tasks. Keep file ownership notes here if parallel work is assigned.
 Do not overwrite other agents' notes; append decision/result with context and tests.
+
+## qtype IPv4 exercise expansion (PR #4)
+
+- Branch `feat/ipv4-exercise-types`: qtype 0.3.0 adds 12 selectable exercise variants,
+  prefixes /1–/30, text/choice grading and a backwards-compatible DB upgrade.
+- Selection is implemented in the qtype editor and quiz bulk generator. Practicum's
+  registry/settings remain the network-only foundation; exposing these variants
+  in Practicum requires a separate adapter/UI change. Existing network adapter
+  calls retain the default network type.
+- Merged current `main` (Practicum foundation) into this branch without conflicts.
+- Validation in this checkout: PHP 8.4.24 syntax, isolated calculation/state/grading
+  harness (64,303 assertions) and 7,200 independent Python ipaddress comparisons.
+  This is not a Moodle PHPUnit run. See TESTING.md.
+- Historical `work/php` and `work/moodle` described above are absent in this
+  checkout. Actual Moodle DB upgrade, full plugin suites and browser checks
+  remain required before release; no server deployment or PR merge performed.
