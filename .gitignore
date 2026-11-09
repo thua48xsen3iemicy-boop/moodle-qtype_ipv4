@@ -2,3 +2,6 @@
 /vendor/
 .phpunit.result.cache
 /dist/
+
+__pycache__/
+*.pyc
