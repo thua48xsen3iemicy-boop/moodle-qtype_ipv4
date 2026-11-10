@@ -63,3 +63,13 @@
   Old blocks remain readable until resaved; old attempts and v1 grading semantics
   are unchanged. New mode values yield distinct immutable v1 template identities;
   concrete operand styles/mode are snapshotted as before. No schema migration.
+
+- D016: Name the current Linux question family “File and path operations”; keep
+  qtype_linuxcmd component, linux_* ids, database fields and template keys stable.
+  In Practicum each/random selection modes offer native category checkboxes plus
+  individual types. Category membership derives from the existing IPv4 catalog
+  and Linux exercise list, so new registered members are included on the next
+  form save. Union selections without duplicates and enforce the expanded slot
+  limit. Persist concrete types plus optional groups/individualtypes UI metadata
+  in blocks JSON; restore the same checkboxes and extra types on edit. Plans use
+  concrete types only, preserving existing attempts and older configurations.

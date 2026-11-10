@@ -196,6 +196,95 @@ final class configuration_test extends \advanced_testcase {
         }
     }
 
+    public function test_categories_cover_every_type_once_with_readable_labels(): void {
+        $groups = local\registry::groups();
+        $all = array_merge(...array_values($groups));
+        $this->assertCount(count(local\registry::labels()), $all);
+        $this->assertCount(count($all), array_unique($all));
+        foreach ($all as $type) {
+            $this->assertTrue(isset(local\registry::labels()[$type]));
+        }
+        foreach (local\registry::group_labels() as $group => $label) {
+            $this->assertTrue(isset($groups[$group]));
+            $this->assertStringNotContainsString('[[', $label);
+        }
+        foreach ($groups['files'] as $type) {
+            $this->assertStringNotContainsString('Linux:', local\registry::labels()[$type]);
+        }
+    }
+
+    public function test_each_category_can_be_selected_without_clicking_individual_types(): void {
+        foreach (local\registry::groups() as $group => $types) {
+            foreach (['each', 'random'] as $mode) {
+                $blocks = json_decode(local\blueprint::from_form((object)[
+                    'selectionmode' => $mode, 'selectedgroups' => [$group => 1],
+                    'sharedcount' => 2, 'sharedprefix' => [24],
+                ]), true);
+                $this->assertSame($types, $blocks[0]['types']);
+                $this->assertSame([$group], $blocks[0]['groups']);
+                $this->assertSame([], $blocks[0]['individualtypes']);
+                $plan = local\blueprint::plan($blocks);
+                $this->assertCount($mode === 'each' ? 2 * count($types) : 2, $plan);
+                foreach ($plan as $slot) {
+                    $this->assertTrue(in_array($slot['type'], $types, true));
+                }
+            }
+        }
+    }
+
+    public function test_categories_combine_with_extra_types_without_duplicates_and_roundtrip(): void {
+        $form = (object)[
+            'selectionmode' => 'each', 'selectedgroups' => ['files' => 1, 'routing' => 1, 'subnet' => 0],
+            'selectedtypes' => ['linux_move', 'ipv4_network', 'ipv4_network'],
+            'sharedcount' => 1, 'sharedprefix' => [26],
+        ];
+        $blocks = json_decode(local\blueprint::from_form($form), true);
+        $groups = local\registry::groups();
+        $this->assertCount(count($groups['files']) + count($groups['routing']) + 1, $blocks[0]['types']);
+        $this->assertSame(['files', 'routing'], $blocks[0]['groups']);
+        $this->assertSame(['linux_move', 'ipv4_network'], $blocks[0]['individualtypes']);
+        $this->assertCount(count($blocks[0]['types']), local\blueprint::plan($blocks));
+        $form->selectedgroups = array_fill_keys($blocks[0]['groups'], 1);
+        $form->selectedtypes = $blocks[0]['individualtypes'];
+        $this->assertSame($blocks, json_decode(local\blueprint::from_form($form), true));
+        // Concrete snapshots do not change if form categories are later edited.
+        $snapshot = json_encode($blocks);
+        $form->selectedgroups = ['diagnostic' => 1];
+        local\blueprint::from_form($form);
+        $this->assertSame($snapshot, json_encode($blocks));
+    }
+
+    public function test_categories_enforce_expanded_total_limit(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectedgroups' => ['files' => 1], 'sharedcount' => 11,
+        ]);
+    }
+
+    public function test_unknown_category_is_rejected(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'selectionmode' => 'random', 'selectedgroups' => ['unknown' => 1], 'sharedcount' => 2,
+        ]);
+    }
+
+    public function test_malformed_category_selection_is_rejected(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectedgroups' => 'files', 'sharedcount' => 1,
+        ]);
+    }
+
+    public function test_select_all_overrides_category_and_individual_choices(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectalltypes' => 1, 'selectedgroups' => ['files' => 1],
+            'selectedtypes' => ['linux_move'], 'sharedcount' => 1, 'sharedprefix' => [24],
+        ]), true);
+        $this->assertSame(array_keys(local\registry::labels()), $blocks[0]['types']);
+        $this->assertFalse(isset($blocks[0]['groups']));
+        $this->assertFalse(isset($blocks[0]['individualtypes']));
+    }
+
     public function test_linux_rejects_unknown_path_mode(): void {
         $this->expectException(\invalid_parameter_exception::class);
         local\blueprint::validate([['type' => 'linux_move', 'count' => 1, 'pathmode' => 'shell']]);

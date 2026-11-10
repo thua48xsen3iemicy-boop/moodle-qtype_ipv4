@@ -68,3 +68,14 @@ Command modules live under classes/exercise; the similarly named existing
 qtype_ipv4\exercise class retains its public calculation and state API.
 Command templates force text entry. The semantic grammar never launches input.
 Multi-command tasks use ordered newline-separated commands and a textarea.
+
+## Category selection
+
+`registry::groups()` maps stable category ids to concrete allowlisted type ids,
+using the existing IPv4 catalog and file-operation exercise list. The form offers
+checkboxes for whole categories in each/random modes alongside individual types.
+`blueprint::from_form` expands the union once on save and stores optional `groups`
+and `individualtypes` UI metadata with the existing concrete `types` snapshot.
+Planning/backup keep that snapshot; preprocessing restores categories and extras
+separately. New catalog members enter a selected category on resave, never during
+an existing attempt. No Moodle question-bank category or schema changes.

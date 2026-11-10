@@ -15,9 +15,19 @@ final class blueprint {
             throw new \invalid_parameter_exception('Invalid selection mode');
         }
         if ($mode !== 'advanced') {
-            $types = !empty($data->selectalltypes) ? array_keys(registry::labels()) : ($data->selectedtypes ?? []);
-            if (!is_array($types) || !$types) {
-                throw new \invalid_parameter_exception('Select at least one type');
+            $groups = $data->selectedgroups ?? [];
+            $individualtypes = $data->selectedtypes ?? [];
+            if (!is_array($groups) || !is_array($individualtypes)) {
+                throw new \invalid_parameter_exception('Invalid selection');
+            }
+            $groups = array_keys(array_filter($groups));
+            if (!empty($data->selectalltypes)) {
+                $groups = [];
+                $individualtypes = array_keys(registry::labels());
+            }
+            $types = registry::expand_selection($groups, $individualtypes);
+            if (!$types) {
+                throw new \invalid_parameter_exception('Select at least one type or category');
             }
             $prefixes = $data->sharedprefix ?? [];
             foreach ($prefixes as $prefix) {
@@ -29,6 +39,10 @@ final class blueprint {
                 'count' => (int)($data->sharedcount ?? 0),
                 'prefixes' => array_values(array_unique(array_map('intval', $prefixes))),
                 'pathmode' => 'random']];
+            if ($groups) {
+                $blocks[0]['groups'] = $groups;
+                $blocks[0]['individualtypes'] = array_values(array_unique($individualtypes));
+            }
             self::validate($blocks);
             return json_encode($blocks, JSON_THROW_ON_ERROR);
         }

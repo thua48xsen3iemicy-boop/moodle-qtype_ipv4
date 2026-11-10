@@ -1,5 +1,35 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.6.0: category selection and file-operation naming (2026-11-10)
+
+- Branch `feat/question-category-selection`, based on automatic-path commit
+  78de9ea. Native category checkboxes in each/random form modes: subnet, address,
+  routing, virtual, diagnostic, files. Reuses IPv4 catalog grouping and the file
+  exercise list; no duplicate list of task members. Individual selection remains.
+- Form save unions checked categories and individual types, removes duplicates,
+  checks the expanded total limit and saves concrete type snapshots. Optional
+  groups/individualtypes metadata restores category checkboxes and extra types
+  on edit. Old configurations still reopen; all-types overrides category choices.
+  Newly registered category members enter on resave; existing attempts stay fixed.
+- Renamed “Linux” family to “File and path operations” in RU/EN activity type
+  labels and native qtype name/editor headings/path label. Component names,
+  linux_* ids and immutable template identities remain unchanged.
+- mod_practicum 2026111003 / 0.6.0; qtype_linuxcmd 2026111002 / 0.2.1.
+  No DB schema changes; native Moodle upgrade refreshes versions/language caches.
+- Actual validation: PHP 8.4.27 syntax on all 43 plugin/harness files passed;
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  8,173 assertions passed using stand-ins, not Moodle core/DB/PHPUnit. Tests cover
+  category coverage, category-only each/random plans, multiple groups plus extras,
+  deduplication, total limits, invalid categories, real preprocessing roundtrip,
+  old configuration editing, existing state/grading/path-generation regressions.
+- Packaging unit tests: 2 passed. Mock deployment success/failure/unknown-type
+  checks and `git diff --check` passed; no real deployment performed.
+- Real Moodle tests updated for category-selected pool resume after edits and
+  backup/restore with category metadata. NOT RUN: native Moodle 5.3 installation,
+  DB/PHPUnit/browser form and upgrade checks; this checkout has no Moodle core,
+  database, configured web app or PHPUnit. No server deployment or PR merge.
+
+
 ## Practicum 0.5.1: automatic Linux path styles (2026-11-10)
 
 - Branch `feat/random-linux-paths`. Removed shared and repeated per-block path

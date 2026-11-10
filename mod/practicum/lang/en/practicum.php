@@ -1,5 +1,5 @@
 <?php
-$string['linuxtask'] = 'Linux: {$a}';
+$string['linuxtask'] = 'File and path operations › {$a}';
 $string['linuxfeedback'] = 'Absolute paths start with /. Relative paths start at the working directory; .. names its parent. cp preserves the source; mv moves or renames it. Use mkdir -p for missing parent directories and -r for recursive copying or removal. The example answer follows the required path styles; equivalent literal commands are also accepted.';
 // Moodle plugin, GPL v3 or later.
 /** @package mod_practicum
@@ -63,7 +63,11 @@ $string['selectionmode'] = 'Question selection';
 $string['selectionadvanced'] = 'Set count for each topic';
 $string['selectioneach'] = 'Same count for selected topics';
 $string['selectionrandom'] = 'Random questions from selected topics';
-$string['selectedtypes'] = 'Topics / question types';
+$string['selectedtypes'] = 'Individual question types';
 $string['selectalltypes'] = 'Select all question types';
 $string['sharedcount'] = 'Question count';
-$string['selectionhint'] = 'Same count: generates this many questions for each selected topic. Random: generates this many questions in total, choosing a type independently for each question; types may repeat or be absent. Prefixes apply to IPv4 tasks; path mode applies to Linux tasks. Maximum 100 questions in total.';
+
+$string['fileoperations'] = 'File and path operations';
+$string['selectedgroups'] = 'Question categories';
+$string['selectedgroups_help'] = 'Select a category to include all its question types. You can combine categories and individual types below; duplicates count once. Category membership is refreshed when settings are saved; existing attempts stay unchanged.';
+$string['selectionhint'] = 'Select whole categories and/or individual types. Same count: this many questions per type, including types within categories. Random: this many questions in total, choosing each type independently; types may repeat. Prefixes apply to IPv4; path styles are automatic. Maximum 100 questions in total.';

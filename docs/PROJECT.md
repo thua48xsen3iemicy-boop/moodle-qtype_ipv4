@@ -7,6 +7,8 @@ independently selected allowed prefixes /1–/30.
 Linux commands and paths are available as text-response scenarios: 10 file/directory
 operations with automatically randomised absolute/relative operands, favouring relative
 paths. Both mixed directions are supported; the initial structure remains. No shell is executed.
+The file/path family is labelled “File and path operations” in the UI. Teachers
+can select entire topic categories and combine them with individual task types.
 Future families: isolated VM lab tasks.
 
 Confirmed requirements: both training and assessment, mixed task blocks, manual

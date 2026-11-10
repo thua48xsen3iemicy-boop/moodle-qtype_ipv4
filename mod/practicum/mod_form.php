@@ -34,6 +34,13 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->setDefault('selectionmode', empty($this->current->blocks) ? 'each' : 'advanced');
         $m->addElement('static', 'selectionhint', '', get_string('selectionhint', 'practicum'));
         $m->addElement('advcheckbox', 'selectalltypes', get_string('selectalltypes', 'practicum'));
+        $categories = [];
+        foreach (\mod_practicum\local\registry::group_labels() as $id => $label) {
+            $categories[] = $m->createElement('advcheckbox', $id, '', $label);
+        }
+        $m->addGroup($categories, 'selectedgroups', get_string('selectedgroups', 'practicum'), '<br>');
+        $m->addHelpButton('selectedgroups', 'selectedgroups', 'practicum');
+        $m->hideIf('selectedgroups', 'selectalltypes', 'checked');
         $m->addElement('autocomplete', 'selectedtypes', get_string('selectedtypes', 'practicum'),
             \mod_practicum\local\registry::labels(), ['multiple' => true]);
         $m->hideIf('selectedtypes', 'selectalltypes', 'checked');
@@ -45,7 +52,7 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->setDefault('sharedprefix', [8, 16, 24]);
         $prefixselect = $m->createElement('select', 'blockprefix', get_string('prefixes', 'practicum'), $prefixes);
         $prefixselect->setMultiple(true);
-        foreach (['selectionhint', 'selectalltypes', 'selectedtypes', 'sharedcount', 'sharedprefix'] as $field) {
+        foreach (['selectionhint', 'selectalltypes', 'selectedgroups', 'selectedtypes', 'sharedcount', 'sharedprefix'] as $field) {
             $m->hideIf($field, 'selectionmode', 'eq', 'advanced');
         }
         $elements = [
@@ -74,7 +81,8 @@ class mod_practicum_mod_form extends moodleform_mod {
             foreach (json_decode($defaults['blocks'], true) as $i => $block) {
                 if (isset($block['selection'])) {
                     $defaults['selectionmode'] = $block['selection'];
-                    $defaults['selectedtypes'] = $block['types'];
+                    $defaults['selectedtypes'] = $block['individualtypes'] ?? $block['types'];
+                    $defaults['selectedgroups'] = array_fill_keys($block['groups'] ?? [], 1);
                     $defaults['sharedcount'] = $block['count'];
                     $defaults['sharedprefix'] = $block['prefixes'];
                     continue;

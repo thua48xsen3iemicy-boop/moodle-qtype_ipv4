@@ -1,13 +1,13 @@
 <?php
 // Moodle plugin, GPL v3 or later.
-$string['pluginname'] = 'Linux: files and paths';
+$string['pluginname'] = 'File and path operations';
 $string['pluginname_help'] = 'Generates single-command Linux exercises. Checks operations and paths without executing commands.';
-$string['pluginnameadding'] = 'Adding a Linux exercise';
-$string['pluginnameediting'] = 'Editing a Linux exercise';
+$string['pluginnameadding'] = 'Adding a file and path exercise';
+$string['pluginnameediting'] = 'Editing a file and path exercise';
 $string['pluginnamesummary'] = 'Create, copy, move and remove files and directories using the required path styles.';
 $string['privacy:metadata'] = 'This question type stores settings only. Moodle core owns responses and attempt state.';
 $string['tasktype'] = 'File operation';
-$string['pathmode'] = 'Path style (Linux)';
+$string['pathmode'] = 'Path style';
 $string['pathmode_help'] = 'Random mode chooses each path independently: relative with probability 2/3, absolute 1/3. Both mixed combinations are available. Absolute: all paths start at /. Relative: all paths start at the working directory. Mixed: relative source and absolute destination; single-operand exercises use a relative path.';
 $string['mode_absolute'] = 'Absolute paths';
 $string['mode_relative'] = 'Relative paths';
