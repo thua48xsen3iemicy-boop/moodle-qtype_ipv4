@@ -9,6 +9,8 @@ operations with automatically randomised absolute/relative operands, favouring r
 paths. Both mixed directions are supported; the initial structure remains. No shell is executed.
 The file/path family is labelled “File and path operations” in the UI. Teachers
 can select entire topic categories and combine them with individual task types.
+Advanced blocks also accept multiple types with the same count per type; extra
+blocks allow other counts and prefixes.
 An explicit “one question per type” mode includes every selected type once,
 without entering counts; category labels show how many types are registered.
 New network-address questions require the network address with its prefix,

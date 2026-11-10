@@ -37,6 +37,8 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->hideIf('selectionhint', 'selectionmode', 'eq', 'once');
         $m->addElement('static', 'oncehint', '', get_string('selectiononcehint', 'practicum'));
         $m->hideIf('oncehint', 'selectionmode', 'neq', 'once');
+        $m->addElement('static', 'advancedhint', '', get_string('selectionadvancedhint', 'practicum'));
+        $m->hideIf('advancedhint', 'selectionmode', 'neq', 'advanced');
         $m->addElement('advcheckbox', 'selectalltypes', get_string('selectalltypes', 'practicum'));
         $categories = [];
         foreach (\mod_practicum\local\registry::group_labels() as $id => $label) {
@@ -61,8 +63,9 @@ class mod_practicum_mod_form extends moodleform_mod {
             $m->hideIf($field, 'selectionmode', 'eq', 'advanced');
         }
         $elements = [
-            $m->createElement('autocomplete', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
-            $m->createElement('text', 'blockcount', get_string('count', 'practicum')),
+            $m->createElement('autocomplete', 'blocktype', get_string('tasktype', 'practicum'),
+                \mod_practicum\local\registry::labels(), ['multiple' => true]),
+            $m->createElement('text', 'blockcount', get_string('blockcount', 'practicum')),
             $prefixselect,
         ];
         $blocks = empty($this->current->blocks) ? [] : json_decode($this->current->blocks, true);
@@ -74,8 +77,7 @@ class mod_practicum_mod_form extends moodleform_mod {
             foreach (['blocktype', 'blockcount', 'blockprefix'] as $field) {
                 $m->hideIf($field . '[' . $i . ']', 'selectionmode', 'neq', 'advanced');
             }
-            $m->hideIf('blockprefix[' . $i . ']', 'blocktype[' . $i . ']', 'in',
-                array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\exercise::TYPES));
+            $m->addHelpButton('blockprefix[' . $i . ']', 'blockprefix', 'practicum');
         }
         $m->hideIf('addblock', 'selectionmode', 'neq', 'advanced');
         $this->standard_coursemodule_elements();
@@ -84,7 +86,7 @@ class mod_practicum_mod_form extends moodleform_mod {
     public function data_preprocessing(&$defaults) {
         if (!empty($defaults['blocks'])) {
             foreach (json_decode($defaults['blocks'], true) as $i => $block) {
-                if (isset($block['selection'])) {
+                if (isset($block['selection']) && ($block['layout'] ?? '') !== 'block') {
                     $defaults['selectionmode'] = $block['selection'];
                     $defaults['selectedtypes'] = $block['individualtypes'] ?? $block['types'];
                     $defaults['selectedgroups'] = array_fill_keys($block['groups'] ?? [], 1);
@@ -93,7 +95,7 @@ class mod_practicum_mod_form extends moodleform_mod {
                     continue;
                 }
                 $defaults['selectionmode'] = 'advanced';
-                $defaults['blocktype'][$i] = $block['type'];
+                $defaults['blocktype'][$i] = $block['types'] ?? [$block['type']];
                 $defaults['blockcount'][$i] = $block['count'];
                 $defaults['blockprefix'][$i] = $block['prefixes'] ?? [8, 16, 24];
             }
