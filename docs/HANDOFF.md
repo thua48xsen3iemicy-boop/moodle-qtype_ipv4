@@ -2,6 +2,12 @@
 
 ## Practicum 0.6.0: category selection and file-operation naming (2026-11-10)
 
+- Published both changes together in PR #13:
+  https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/13
+  `feat/question-category-selection` includes `feat/random-linux-paths` as an
+  ancestor; no separate random-path PR is needed. Remote main 1cd5b25 is also an
+  ancestor; GitHub reported mergeable with no conflicts. Awaiting merge by user.
+
 - Branch `feat/question-category-selection`, based on automatic-path commit
   78de9ea. Native category checkboxes in each/random form modes: subnet, address,
   routing, virtual, diagnostic, files. Reuses IPv4 catalog grouping and the file
