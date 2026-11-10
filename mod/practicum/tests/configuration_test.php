@@ -11,8 +11,8 @@ final class configuration_test extends \advanced_testcase {
     public function test_every_qtype_exercise_is_selectable_and_has_distinct_template(): void {
         $labels = local\registry::labels();
         $keys = [];
-        $this->assertCount(count(\qtype_ipv4\exercise::TYPES) + count(\qtype_linuxcmd\exercise::TYPES), $labels);
-        foreach (\qtype_ipv4\exercise::TYPES as $type) {
+        $this->assertCount(count(\qtype_ipv4\exercise::ALL_TYPES) + count(\qtype_linuxcmd\exercise::TYPES), $labels);
+        foreach (\qtype_ipv4\exercise::ALL_TYPES as $type) {
             $adapter = local\registry::get('ipv4_' . $type);
             $this->assertSame($adapter->label(), $labels['ipv4_' . $type]);
             $this->assertStringNotContainsString('[[', $adapter->label());
@@ -22,12 +22,12 @@ final class configuration_test extends \advanced_testcase {
             $this->assertNotSame($key, $adapter->template_key(['prefixes' => [24]]));
             $keys[] = $key;
         }
-        $this->assertCount(count(\qtype_ipv4\exercise::TYPES), array_unique($keys));
+        $this->assertCount(count(\qtype_ipv4\exercise::ALL_TYPES), array_unique($keys));
         $this->assertInstanceOf(local\ipv4_network::class, local\registry::get('ipv4_network'));
     }
 
     public function test_boolean_choice_templates_do_not_reuse_old_text_templates(): void {
-        foreach (\qtype_ipv4\exercise::TYPES as $type) {
+        foreach (\qtype_ipv4\exercise::ALL_TYPES as $type) {
             $adapter = local\registry::get('ipv4_' . $type);
             $settings = ['prefixes' => [26]];
             $oldkey = 'practicum_ipv4_v2_' . sha1(json_encode([

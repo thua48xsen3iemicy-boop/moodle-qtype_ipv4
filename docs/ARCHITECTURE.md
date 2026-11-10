@@ -56,3 +56,14 @@ per-attempt lock and DB transaction. HTTP endpoints enforce ownership/capabiliti
 and sesskey. Cron may finish expired attempts through the same lifecycle service.
 Course deletion removes usages via module deletion. Full course backup and privacy
 coverage must be explicitly tested before treating this alpha as production-ready.
+
+## ip command and diagnostic adapters
+
+The shipped `exercise::TYPES` constant remains the 12 IPv4 ids so an older
+Practicum installation is not exposed to adapters it cannot render. `ALL_TYPES`
+and `exercise\catalog` expose all 41 ids to the updated module. `tasktype` stays
+the persisted selector; the `exercise` question property remains the saved array.
+Command modules live under classes/exercise; the similarly named existing
+qtype_ipv4\exercise class retains its public calculation and state API.
+Command templates force text entry. The semantic grammar never launches input.
+Multi-command tasks use ordered newline-separated commands and a textarea.

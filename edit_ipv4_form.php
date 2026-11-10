@@ -13,8 +13,8 @@ require_once($CFG->dirroot . '/question/type/edit_question_form.php');
 /** Editing controls for allowed prefixes and answer mode. */
 class qtype_ipv4_edit_form extends question_edit_form {
     protected function definition_inner($mform) {
-        $mform->addElement('select', 'tasktype', get_string('tasktype', 'qtype_ipv4'),
-            \qtype_ipv4\exercise::labels());
+        $mform->addElement('autocomplete', 'tasktype', get_string('tasktype', 'qtype_ipv4'),
+            \qtype_ipv4\exercise\catalog::options());
         $mform->setDefault('tasktype', 'network');
         $elements = [];
         foreach (\qtype_ipv4\network::PREFIXES as $prefix) {
@@ -28,6 +28,10 @@ class qtype_ipv4_edit_form extends question_edit_form {
             'choice' => get_string('modechoice', 'qtype_ipv4'),
         ]);
         $mform->setDefault('answermode', 'text');
+        foreach (\qtype_ipv4\exercise::COMMAND_TYPES as $id) {
+            $mform->hideIf('allowedprefixes', 'tasktype', 'eq', $id);
+            $mform->hideIf('answermode', 'tasktype', 'eq', $id);
+        }
         $mform->addElement('hidden', 'prefixes', '8,16,24');
         $mform->setType('prefixes', PARAM_TEXT);
     }
@@ -47,10 +51,11 @@ class qtype_ipv4_edit_form extends question_edit_form {
 
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
-        if (!array_filter(\qtype_ipv4\network::PREFIXES, fn($p) => !empty($data['prefix' . $p]))) {
+        if (!in_array($data['tasktype'] ?? 'network', \qtype_ipv4\exercise::COMMAND_TYPES, true) &&
+                !array_filter(\qtype_ipv4\network::PREFIXES, fn($p) => !empty($data['prefix' . $p]))) {
             $errors['allowedprefixes'] = get_string('chooseprefix', 'qtype_ipv4');
         }
-        if (!in_array($data['tasktype'] ?? 'network', \qtype_ipv4\exercise::TYPES, true)) {
+        if (!in_array($data['tasktype'] ?? 'network', \qtype_ipv4\exercise::ALL_TYPES, true)) {
             $errors['tasktype'] = get_string('invalidanswer', 'qtype_ipv4');
         }
         return $errors;

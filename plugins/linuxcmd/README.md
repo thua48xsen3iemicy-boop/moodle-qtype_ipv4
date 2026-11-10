@@ -27,7 +27,7 @@ mv для переименования и перемещения, rmdir, rm дл
 
 Архив qtype_linuxcmd.zip распакуйте в public/question/type: должен получиться
 каталог public/question/type/linuxcmd. Для использования в «Практикуме» также
-установите mod_practicum 0.3.0 и его зависимость qtype_ipv4 >= 0.3.0.
+установите mod_practicum 0.4.0 и его зависимость qtype_ipv4 >= 0.4.0.
 Выполните штатный upgrade Moodle и очистку кешей. Общий deploy.sh репозитория
 обнаруживает новый компонент автоматически через manifest.json.
 

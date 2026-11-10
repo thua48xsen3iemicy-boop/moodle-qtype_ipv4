@@ -27,6 +27,8 @@ final class backup_test extends \advanced_testcase {
         $category = $questions->create_question_category(['contextid' => \context_module::instance($bank->cmid)->id]);
         $original = $questions->create_question('ipv4', 'network',
                 ['category' => $category->id, 'prefixes' => '8,26', 'answermode' => 'choice', 'tasktype' => 'nextsubnet']);
+        $command = $questions->create_question('ipv4', 'network',
+                ['category' => $category->id, 'tasktype' => 'virtual_setup_vlan']);
         $target = $generator->create_course();
         $backup = new \backup_controller(\backup::TYPE_1COURSE, $course->id, \backup::FORMAT_MOODLE,
                 \backup::INTERACTIVE_NO, \backup::MODE_IMPORT, $USER->id);
@@ -38,9 +40,15 @@ final class backup_test extends \advanced_testcase {
         $this->assertTrue($restore->execute_precheck());
         $restore->execute_plan();
         $restore->destroy();
-        $options = $DB->get_records_select('qtype_ipv4_options', 'questionid <> ?', [$original->id]);
-        $this->assertCount(1, $options);
-        $restored = reset($options);
+        $options = $DB->get_records_select('qtype_ipv4_options', 'questionid NOT IN (?, ?)', [$original->id, $command->id]);
+        $this->assertCount(2, $options);
+        $bytype = [];
+        foreach ($options as $option) {
+            $bytype[$option->tasktype] = $option;
+        }
+        $this->assertArrayHasKey('virtual_setup_vlan', $bytype);
+        $this->assertSame('text', $bytype['virtual_setup_vlan']->answermode);
+        $restored = $bytype['nextsubnet'];
         $this->assertSame('8,26', $restored->prefixes);
         $this->assertSame('nextsubnet', $restored->tasktype);
         $this->assertSame('choice', $restored->answermode);

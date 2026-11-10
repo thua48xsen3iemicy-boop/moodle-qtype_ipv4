@@ -17,7 +17,7 @@ class qtype_ipv4_renderer extends qtype_renderer {
         $current = $qa->get_last_qt_var('answer');
         $task = $question->task_text();
         $html = html_writer::div($question->format_questiontext($qa), 'qtext');
-        $html .= html_writer::tag('p', s($task));
+        $html .= html_writer::tag('p', nl2br(s($task)));
         if ($question->answermode === 'choice') {
             $html .= html_writer::start_tag('fieldset', ['class' => 'ablock']);
             $html .= html_writer::tag('legend', get_string('selectanswer', 'qtype_ipv4'), ['class' => 'h6']);
@@ -35,13 +35,30 @@ class qtype_ipv4_renderer extends qtype_renderer {
             }
             $html .= html_writer::end_tag('fieldset');
         } else {
-            $html .= html_writer::tag('label', get_string('enteranswer', 'qtype_ipv4'), ['for' => $name]);
+            $iscommand = in_array($question->exerciseparams['kind'] ?? '', ['command', 'commands'], true);
+            if ($iscommand) {
+                $hint = ($question->exerciseparams['kind'] ?? '') === 'commands' ? 'commandshelp' : 'commandhelp';
+                $html .= html_writer::tag('p', s(get_string($hint, 'qtype_ipv4')), ['class' => 'small']);
+            }
+            $label = $question->exerciseparams === null ? 'enteranswer' : ($iscommand ? 'entercommand' : 'enterresponse');
+            $html .= html_writer::tag('label', get_string($label, 'qtype_ipv4'), ['for' => $name]);
             $attrs = ['type' => 'text', 'name' => $name, 'id' => $name, 'value' => $current ?? '',
                 'class' => 'form-control', 'size' => 18, 'autocomplete' => 'off', 'spellcheck' => 'false'];
+            if ($iscommand) {
+                // Boost limits inputs with a size attribute to their character width.
+                unset($attrs['size']);
+                $attrs['class'] .= ' w-100';
+            }
             if ($options->readonly) {
                 $attrs['readonly'] = 'readonly';
             }
-            $html .= html_writer::empty_tag('input', $attrs);
+            if (($question->exerciseparams['kind'] ?? '') === 'commands') {
+                unset($attrs['type'], $attrs['value'], $attrs['size']);
+                $attrs['rows'] = 4;
+                $html .= html_writer::tag('textarea', s($current ?? ''), $attrs);
+            } else {
+                $html .= html_writer::empty_tag('input', $attrs);
+            }
         }
         if ($options->correctness && $question->is_gradable_response(['answer' => $current])) {
             [$fraction] = $question->grade_response(['answer' => $current]);
@@ -54,6 +71,7 @@ class qtype_ipv4_renderer extends qtype_renderer {
     }
 
     public function correct_response(question_attempt $qa) {
-        return get_string('correctansweris', 'qtype_ipv4', s(\qtype_ipv4\exercise::display($qa->get_question()->get_correct_response()['answer'])));
+        return nl2br(get_string('correctansweris', 'qtype_ipv4',
+                s(\qtype_ipv4\exercise::display($qa->get_question()->get_correct_response()['answer']))));
     }
 }

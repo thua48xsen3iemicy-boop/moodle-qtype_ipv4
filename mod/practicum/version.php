@@ -9,5 +9,5 @@ $plugin->component = 'mod_practicum';
 $plugin->version = 2026111000;
 $plugin->requires = 2026100500;
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.3.0';
-$plugin->dependencies = ['qtype_ipv4' => 2026110902, 'qtype_linuxcmd' => 2026111000];
+$plugin->release = '0.4.0';
+$plugin->dependencies = ['qtype_ipv4' => 2026110903, 'qtype_linuxcmd' => 2026111000];

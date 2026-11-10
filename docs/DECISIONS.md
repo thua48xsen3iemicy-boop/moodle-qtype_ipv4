@@ -29,7 +29,16 @@
   text entry. Boolean templates use new v3 identities including answer mode,
   leaving existing v2 text templates and saved attempt state untouched.
 
-- D012: Implement Linux files/paths as a separate native `qtype_linuxcmd`, bridged
+- D012: Integrate command tasks with the published tasktype schema rather than
+  overwrite the independently released 2026110902 schema. Use qtype 2026110903
+  (0.4.0) and Practicum 2026110903 (0.3.0). Preserve the 12-id TYPES API for older
+  activity code, expose ALL_TYPES for the new module, and retain immutable saved
+  state and boolean template identities. Support the experimental exercise-field
+  migration as well. Searchable grouped labels and quiz topic checkboxes avoid
+  an unstructured dropdown; saved teacher presets remain future work. All command
+  grading is limited, in-process grammar comparison with no shell execution.
+
+- D013: Implement Linux files/paths as a separate native `qtype_linuxcmd`, bridged
   by `linux_task`, with 10 selectable operations and per-block absolute/relative/
   mixed path rules. Accept equivalent literal commands by semantic path checking;
   never execute learner input. Single-operand mixed tasks use relative paths.

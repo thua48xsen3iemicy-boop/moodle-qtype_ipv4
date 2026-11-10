@@ -95,7 +95,7 @@ try {
         'blockpathmode' => ['mixed'], 'blockprefix' => [[], [26]],
     ]), true);
     $check->assertCount(3, \mod_practicum\local\blueprint::plan($blocks));
-    $check->assertCount(22, \mod_practicum\local\registry::labels());
+    $check->assertCount(count(\qtype_ipv4\exercise::ALL_TYPES) + count(\qtype_linuxcmd\exercise::TYPES), \mod_practicum\local\registry::labels());
     $keys = [];
     foreach (\qtype_linuxcmd\exercise::TYPES as $type) {
         foreach (\qtype_linuxcmd\exercise::MODES as $mode) {

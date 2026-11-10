@@ -2,7 +2,7 @@
 
 Moodle 5.3, course activity «Практикум» (Practicum). Teacher adds the activity,
 configures blocks and counts, and selects training or assessment. No manual bank
-population. All 12 IPv4 exercise variants are available as mixed blocks with
+population. All 12 IPv4 exercise variants plus 29 ip-command and diagnostic tasks are available as mixed blocks with
 independently selected allowed prefixes /1–/30.
 Linux commands and paths are available as text-response scenarios: 10 file/directory
 operations with absolute, relative or mixed path operands. No shell is executed.

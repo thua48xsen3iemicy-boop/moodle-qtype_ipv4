@@ -1,4 +1,7 @@
-# Practicum 0.3.0 Linux verification
+# Practicum 0.4.0 Linux verification
+
+Revalidated after merging main 48f444d into the PR branch: all 41 IPv4/ip-command
+selectors coexist with the 10 file/path selectors. Module release is 0.4.0.
 
 Environment: repository checkout, Debian 13, PHP 8.4.27 CLI extracted locally
 under ignored `work/php-runtime`. No installed Moodle core/database or PHPUnit.
@@ -8,7 +11,7 @@ Executed:
 - PHP `-n -l`: all 42 PHP files in the Linux qtype, Practicum and standalone
   harness passed syntax checks.
 - `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
-  **3,325 assertions passed**. Covers all 10 operations × 3 modes × 20 random
+  **3,499 assertions passed**. Covers all 10 operations × 3 modes × 20 random
   scenarios, literal quoting/escaping, flags, path styles, known relative-path
   examples, missing intermediates, regular-file traversal, copy destinations,
   trailing slashes, special dot operands, snapshot/restore/grading and existing
@@ -21,7 +24,7 @@ Executed:
   recursive copy to a new `copy/` succeeds; new `copy-dot/.` and missing
   `copy-parent/../copy-again` fail. Grading tests reflect these distinctions.
 - `python tools/package.py`: built mod_practicum (31 files), qtype_linuxcmd
-  (18 files), qtype_ipv4 (30 files). Verified ZIP integrity, manifest components,
+  (18 files), qtype_ipv4 (38 files). Verified ZIP integrity, manifest components,
   install roots, no work/.git contents, and no nested plugins in qtype_ipv4.
 - `git diff --check`: passed.
 

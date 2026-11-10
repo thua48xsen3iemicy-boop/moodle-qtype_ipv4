@@ -33,7 +33,7 @@ class mod_practicum_mod_form extends moodleform_mod {
             $pathmodes[$pathmode] = get_string('mode_' . $pathmode, 'qtype_linuxcmd');
         }
         $elements = [
-            $m->createElement('select', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
+            $m->createElement('autocomplete', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
             $m->createElement('text', 'blockcount', get_string('count', 'practicum')),
             $prefixselect,
             $m->createElement('select', 'blockpathmode', get_string('pathmode', 'qtype_linuxcmd'), $pathmodes),
@@ -49,7 +49,7 @@ class mod_practicum_mod_form extends moodleform_mod {
             $m->hideIf('blockprefix[' . $i . ']', 'blocktype[' . $i . ']', 'in',
                 array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\exercise::TYPES));
             $m->hideIf('blockpathmode[' . $i . ']', 'blocktype[' . $i . ']', 'in',
-                array_map(fn($type) => 'ipv4_' . $type, \qtype_ipv4\exercise::TYPES));
+                array_map(fn($type) => 'ipv4_' . $type, \qtype_ipv4\exercise::ALL_TYPES));
         }
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();

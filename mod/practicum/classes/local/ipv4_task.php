@@ -11,14 +11,13 @@ class ipv4_task implements task_type {
     private string $type;
 
     public function __construct(string $type) {
-        if (!in_array($type, \qtype_ipv4\exercise::TYPES, true)) {
+        if (!in_array($type, \qtype_ipv4\exercise::ALL_TYPES, true)) {
             throw new \invalid_parameter_exception('Unknown IPv4 exercise');
         }
         $this->type = $type;
     }
     public function label(): string {
-        return $this->type === 'network' ? get_string('ipv4network', 'practicum') :
-            get_string('ipv4task', 'practicum', get_string('type_' . $this->type, 'qtype_ipv4'));
+        return \qtype_ipv4\exercise\catalog::options()[$this->type];
     }
 
     /** Boolean tasks use native radio buttons; other exercises use text entry. */
@@ -62,7 +61,8 @@ class ipv4_task implements task_type {
                 'idnumber' => $key,
                 'category' => $category->id . ',' . $contextid, 'name' => $this->label(),
                 'questiontext' => ['text' => $this->label(), 'format' => FORMAT_PLAIN],
-                'generalfeedback' => ['text' => get_string('explanation_' . $this->type, 'practicum'), 'format' => FORMAT_PLAIN],
+                'generalfeedback' => ['text' => in_array($this->type, \qtype_ipv4\exercise::COMMAND_TYPES, true) ?
+                    get_string('commandexplanation', 'practicum') : get_string('explanation_' . $this->type, 'practicum'), 'format' => FORMAT_PLAIN],
                 'defaultmark' => 1, 'penalty' => 0, 'status' => 'ready',
                 'prefixes' => implode(',', $settings['prefixes']), 'answermode' => $this->answer_mode(), 'tasktype' => $this->type,
             ];

@@ -17,5 +17,22 @@ function xmldb_qtype_ipv4_upgrade($oldversion) {
         }
         upgrade_plugin_savepoint(true, 2026110902, 'qtype', 'ipv4');
     }
+    if ($oldversion < 2026110903) {
+        $table = new xmldb_table('qtype_ipv4_options');
+        $prefixfield = new xmldb_field('prefixes', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, '8,16,24');
+        $dbman->change_field_precision($table, $prefixfield);
+        // Also handle the earlier experimental command schema without losing its task ids.
+        $table = new xmldb_table('qtype_ipv4_options');
+        $field = new xmldb_field('tasktype', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'network');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $legacy = new xmldb_field('exercise');
+        if ($dbman->field_exists($table, $legacy)) {
+            $DB->execute('UPDATE {qtype_ipv4_options} SET tasktype = exercise');
+            $dbman->drop_field($table, $legacy);
+        }
+        upgrade_plugin_savepoint(true, 2026110903, 'qtype', 'ipv4');
+    }
     return true;
 }

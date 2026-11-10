@@ -27,9 +27,12 @@ class qtype_ipv4_question extends question_graded_automatically {
     /** @var array persisted exercise parameters */
     public $exercise = [];
 
+    /** @var array|null additional command/diagnostic state */
+    public $exerciseparams = null;
+
     public function start_attempt(question_attempt_step $step, $variant) {
         $data = \qtype_ipv4\exercise::generate($this->tasktype, array_map('intval', explode(',', $this->prefixes)));
-        $data['mode'] = $this->answermode;
+        $data['mode'] = isset($data['kind']) ? 'text' : $this->answermode;
         $step->set_qt_var('_ipv4', json_encode($data, JSON_THROW_ON_ERROR));
         $this->apply_attempt_state($step);
     }
@@ -38,11 +41,12 @@ class qtype_ipv4_question extends question_graded_automatically {
         // Never regenerate here: reload, review and regrade must use the original exercise.
         $data = json_decode($step->get_qt_var('_ipv4'), true, 512, JSON_THROW_ON_ERROR);
         $this->exercise = $data;
-        $this->tasktype = $data['type'] ?? 'network';
-        $this->ip = $data['ip'];
-        $this->prefix = (int)$data['prefix'];
-        $this->choices = $data['choices'];
-        $this->answermode = $data['mode'];
+        $this->tasktype = $data['type'] ?? $data['exercise'] ?? 'network';
+        $this->exerciseparams = isset($data['kind']) ? $data : null;
+        $this->ip = $data['ip'] ?? $data['params']['address'];
+        $this->prefix = (int)($data['prefix'] ?? $data['params']['prefix']);
+        $this->choices = $data['choices'] ?? [];
+        $this->answermode = $data['mode'] ?? 'text';
     }
 
     public function get_expected_data() {
@@ -71,6 +75,11 @@ class qtype_ipv4_question extends question_graded_automatically {
     }
 
     public function grade_response(array $response) {
+        if ($this->exerciseparams !== null) {
+            $fraction = \qtype_ipv4\exercise\catalog::correct($this->exerciseparams,
+                    (string)($response['answer'] ?? '')) ? 1.0 : 0.0;
+            return [$fraction, question_state::graded_state_for_fraction($fraction)];
+        }
         $correct = $this->is_complete_response($response) &&
                 \qtype_ipv4\exercise::normalise((string)$response['answer'], $this->tasktype) ===
                     $this->get_correct_response()['answer'];
@@ -87,6 +96,9 @@ class qtype_ipv4_question extends question_graded_automatically {
     }
 
     public function task_text(): string {
+        if ($this->exerciseparams !== null) {
+            return \qtype_ipv4\exercise\catalog::task($this->exerciseparams);
+        }
         $data = $this->exercise + ['ip' => $this->ip, 'prefix' => $this->prefix];
         return get_string('task_' . $this->tasktype, 'qtype_ipv4', (object)$data);
     }
