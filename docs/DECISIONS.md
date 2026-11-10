@@ -104,3 +104,12 @@
   restores the original rows instead of switching to the global each mode. Plan
   and total-limit calculation reuse existing each semantics. Mixed IPv4/file rows
   are supported; prefixes remain visible and apply only to IPv4. No schema change.
+
+- D021: Reuse qtype_linuxcmd for a separate permissions category (17 stable
+  linux_* ids); retain the ten-member files category. permissions owns version-2
+  snapshots and semantic mode evaluation, with Practicum v2 template keys only
+  for new ids. Existing v1 generation/grading/keys remain unchanged. Short text
+  responses support commands, octal/letters conversion and permission meanings.
+  Commands are never executed. Explicit symbolic classes only; directory special
+  bit tasks require symbolic notation, with GNU directory SUID/SGID preservation
+  on =. ACL and extended filesystem attributes remain outside this module.

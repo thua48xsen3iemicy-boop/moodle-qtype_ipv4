@@ -17,16 +17,19 @@ final class linux_lifecycle_test extends \advanced_testcase {
         $g = $this->getDataGenerator();
         $course = $g->create_course();
         $activity = $g->create_module('practicum', [
-            'course' => $course->id, 'mode' => 'exam', 'selectionmode' => 'random',
-            'selectedgroups' => ['files' => 1], 'sharedcount' => 1,
+            'course' => $course->id, 'mode' => 'exam', 'selectionmode' => 'once',
+            'selectedgroups' => ['files' => 1, 'permissions' => 1],
         ]);
         $student = $g->create_user();
         $g->enrol_user($student->id, $course->id, 'student');
         $this->setUser($student);
         $attempt = local\attempts::start($activity, \context_module::instance($activity->cmid), $student->id);
         $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
-        $snapshot = $usage->get_question(1)->exercise;
-        $usage->process_action(1, $usage->get_question(1)->get_correct_response());
+        $snapshots = [];
+        foreach ($usage->get_slots() as $slot) {
+            $snapshots[$slot] = $usage->get_question($slot)->exercise;
+            $usage->process_action($slot, $usage->get_question($slot)->get_correct_response());
+        }
         \question_engine::save_questions_usage_by_activity($usage);
         local\attempts::process($attempt->id, null, true);
         $this->setAdminUser();
@@ -49,10 +52,13 @@ final class linux_lifecycle_test extends \advanced_testcase {
         $this->assertSame($activity->blocks, $restored->blocks);
         $restoredattempt = $DB->get_record('practicum_attempts', ['practicumid' => $restored->id], '*', MUST_EXIST);
         $restoredusage = \question_engine::load_questions_usage_by_activity($restoredattempt->usageid);
-        $this->assertSame($snapshot, $restoredusage->get_question(1)->exercise);
-        $this->assertSame($snapshot['type'], $restoredusage->get_question(1)->tasktype);
-        $this->assertSame($snapshot['mode'], $restoredusage->get_question(1)->pathmode);
-        $this->assertEquals(1, $restoredusage->get_total_mark());
+        $this->assertCount(count($snapshots), $restoredusage->get_slots());
+        foreach ($snapshots as $slot => $snapshot) {
+            $this->assertSame($snapshot, $restoredusage->get_question($slot)->exercise);
+            $this->assertSame($snapshot['type'], $restoredusage->get_question($slot)->tasktype);
+            $this->assertSame($snapshot['mode'], $restoredusage->get_question($slot)->pathmode);
+        }
+        $this->assertEquals(count($snapshots), $restoredusage->get_total_mark());
     }
 
     public function test_mixed_families_reload_finish_and_grade_in_both_modes(): void {
@@ -65,7 +71,8 @@ final class linux_lifecycle_test extends \advanced_testcase {
             $types = ['ipv4_network'];
             $pathmodes = ['relative'];
             foreach (\qtype_linuxcmd\exercise::TYPES as $type) {
-                foreach (\qtype_linuxcmd\exercise::MODES as $pathmode) {
+                foreach (in_array($type, \qtype_linuxcmd\permissions::TYPES, true) ?
+                        ['random'] : \qtype_linuxcmd\exercise::MODES as $pathmode) {
                     $types[] = 'linux_' . $type;
                     $pathmodes[] = $pathmode;
                 }

@@ -24,7 +24,8 @@ class qtype_linuxcmd_question extends question_graded_automatically {
     public function is_complete_response(array $response) { return trim($response['answer'] ?? '') !== ''; }
     public function is_gradable_response(array $response) { return $this->is_complete_response($response); }
     public function get_validation_error(array $response) {
-        return $this->is_complete_response($response) ? '' : get_string('enteranswer', 'qtype_linuxcmd');
+        return $this->is_complete_response($response) ? '' : get_string(($this->exercise['answerkind'] ?? 'command') === 'command' ?
+            'enteranswer' : 'permissionanswer', 'qtype_linuxcmd');
     }
     public function grade_response(array $response) {
         $fraction = \qtype_linuxcmd\exercise::correct((string)($response['answer'] ?? ''), $this->exercise) ? 1.0 : 0.0;

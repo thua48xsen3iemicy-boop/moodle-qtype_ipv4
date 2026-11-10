@@ -30,14 +30,16 @@ final class registry {
         foreach (\qtype_ipv4\exercise\catalog::groups() as $group => $types) {
             $groups[$group] = array_map(fn($type) => 'ipv4_' . $type, $types);
         }
-        $groups['files'] = array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\exercise::TYPES);
+        $groups['files'] = array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\exercise::FILE_TYPES);
+        $groups['permissions'] = array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\permissions::TYPES);
         return $groups;
     }
 
     public static function group_labels(): array {
         $labels = [];
         foreach (self::groups() as $group => $types) {
-            $name = $group === 'files' ? get_string('fileoperations', 'practicum') :
+            $name = in_array($group, ['files', 'permissions'], true) ?
+                get_string($group === 'files' ? 'fileoperations' : 'permissions', 'practicum') :
                 get_string('group_' . $group, 'qtype_ipv4');
             $labels[$group] = get_string('categorywithcount', 'practicum',
                 (object)['name' => $name, 'count' => count($types)]);

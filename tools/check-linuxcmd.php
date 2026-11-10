@@ -70,7 +70,7 @@ try {
     mkdir($fixture . '/question/type/linuxcmd');
     file_put_contents($fixture . '/question/type/linuxcmd/question.php', '<?php');
     $CFG->dirroot = $fixture;
-    foreach (['exercise', 'question'] as $suite) {
+    foreach (['exercise', 'permissions', 'question'] as $suite) {
         require($root . '/plugins/linuxcmd/tests/' . $suite . '_test.php');
         $class = '\\qtype_linuxcmd\\' . $suite . '_test';
         $test = new $class();
