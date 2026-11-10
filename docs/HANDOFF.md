@@ -2,6 +2,9 @@
 
 ## Practicum 0.6.1: stay at the checked training question (2026-11-10)
 
+- Published PR #14: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/14
+  Awaiting user merge to main; no user-server deployment.
+
 - Branch `fix/training-question-position`, based on main b2eab11 after PR #13
   was merged. Root cause: attempt.php redirected every POST to the bare attempt
   URL, losing the checked question position.
