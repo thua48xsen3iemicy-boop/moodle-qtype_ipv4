@@ -2,6 +2,9 @@
 
 ## Practicum 0.9.0 / Linuxcmd 0.3.0: Linux permissions (2026-11-10)
 
+- Published PR #18: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/18
+  Awaiting user merge; no user-server deployment.
+
 - Branch `feat/linux-permissions`, based on main 83f64f4 after PR #17 merged.
   No user-server deployment or merge performed.
 - Separate permissions category with 17 stable linux_* types: owner, owner+group,
