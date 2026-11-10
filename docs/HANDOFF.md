@@ -2,6 +2,9 @@
 
 ## Practicum 0.8.0: multiple types per advanced block (2026-11-10)
 
+- Published PR #17: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/17
+  Awaiting user merge; no user-server deployment.
+
 - Branch `feat/multiselect-question-blocks`, based on main 8ca9ced after PR #16.
 - Advanced blocktype is now a native multiple autocomplete. Count label and RU/EN
   instructions clarify N per selected type (3 × 5 = 15), additional blocks for
