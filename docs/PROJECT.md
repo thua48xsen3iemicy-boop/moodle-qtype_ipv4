@@ -15,7 +15,9 @@ An explicit “one question per type” mode includes every selected type once,
 without entering counts; category labels show how many types are registered.
 New network-address questions require the network address with its prefix,
 e.g. 192.168.1.0/24. Saved earlier attempts retain their original format.
-Future families: isolated VM lab tasks.
+A separate Linux permissions category adds 17 types: ownership/group commands,
+chmod octal/symbolic modes, special bits, mode conversion and permission meaning.
+ACLs are excluded for a future separate module. Future families: isolated VM lab tasks.
 
 Confirmed requirements: both training and assessment, mixed task blocks, manual
 answers except clickable Yes/No for boolean tasks, independent random prefix selection. Keep the existing IPv4 plugin usable

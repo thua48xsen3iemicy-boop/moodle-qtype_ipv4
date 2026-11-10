@@ -80,3 +80,6 @@ $string['blockcount'] = 'Questions per type (0 — remove block)';
 $string['blockprefix'] = 'Block prefixes';
 $string['blockprefix_help'] = 'Prefixes apply to selected IPv4 exercises in this block. File and path operations ignore them. Both families can be combined in one block.';
 $string['selectionadvancedhint'] = 'Select multiple types in each task selector. The count applies to each selected type: for example, 3 types with 5 questions each produce 15 questions. Add another block for different counts or prefixes. Maximum 100 questions in total.';
+
+$string['permissions'] = 'Linux permissions';
+$string['permissiontask'] = 'Linux permissions: {$a}';

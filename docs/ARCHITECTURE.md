@@ -108,3 +108,18 @@ preprocessing, keeping the row groups/counts on edit. The union within each row 
 unique; different rows may intentionally repeat a type with other counts/prefixes.
 Prefix controls stay visible for mixed selections, and file operations ignore them.
 Existing version-1 attempt plans, templates and saved attempts are unchanged.
+
+## Linux permission questions
+
+qtype_linuxcmd exercise::TYPES is the union of FILE_TYPES and permissions::TYPES.
+Only version-2 snapshots dispatch to permissions; version-1 code is preserved.
+The existing persisted tasktype/pathmode fields, question-engine state, import,
+backup and adapters are reused. No schema change. permissions snapshots include
+initial/goal modes, owner/group targets, response kind and canonical answer.
+Evaluation parses literal command words and checks paths, options, recursion and
+resulting bits. chmodnumeric and chmodsymbolic enforce the requested notation;
+conversion requires exact nine-character letters or 3–4 octal digits. Theory uses
+specified short tokens. The renderer uses a generic answer label and omits the
+filesystem tree for non-command tasks. All answers remain native text responses.
+The permissions category and labels use the same registered type list. Existing
+saved pools are concrete snapshots and do not grow during attempts.

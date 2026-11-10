@@ -203,6 +203,28 @@ final class configuration_test extends \advanced_testcase {
         }
     }
 
+    public function test_permission_category_once_and_template_isolation(): void {
+        $groups = local\registry::groups();
+        $this->assertCount(10, $groups['files']);
+        $expected = array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\permissions::TYPES);
+        $this->assertSame($expected, $groups['permissions']);
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'once', 'selectedgroups' => ['permissions' => 1],
+        ]), true);
+        $plan = local\blueprint::plan($blocks);
+        $this->assertCount(count($expected), $plan);
+        $actual = array_column($plan, 'type');
+        sort($actual); sort($expected);
+        $this->assertSame($expected, $actual);
+        foreach ($actual as $type) {
+            $task = local\registry::get($type);
+            $this->assertTrue(str_starts_with($task->template_key(['pathmode' => 'random']), 'practicum_linuxcmd_v2_'));
+            $this->assertStringNotContainsString('[[', $task->label());
+        }
+        $this->assertTrue(str_starts_with(local\registry::get('linux_copyfile')->template_key([]),
+            'practicum_linuxcmd_v1_'));
+    }
+
     public function test_categories_cover_every_type_once_with_readable_labels(): void {
         $groups = local\registry::groups();
         $all = array_merge(...array_values($groups));

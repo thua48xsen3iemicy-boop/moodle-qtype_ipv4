@@ -1,5 +1,42 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.9.0 / Linuxcmd 0.3.0: Linux permissions (2026-11-10)
+
+- Published PR #18: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/18
+  Awaiting user merge; no user-server deployment.
+
+- Branch `feat/linux-permissions`, based on main 83f64f4 after PR #17 merged.
+  No user-server deployment or merge performed.
+- Separate permissions category with 17 stable linux_* types: owner, owner+group,
+  recursive owner, group, recursive group, numeric/symbolic chmod, set/remove SUID,
+  directory SGID, set/remove sticky, octal↔letters, file/directory r/w/x meaning,
+  special-bit meaning (including executable SGID). Files category stays 10 types.
+  Category selection/once/mixed blocks reuse the existing planner.
+- New pure-data permissions evaluator, version-2 frozen question snapshots and
+  v2 template keys for new types only. Literal command parsing/path traversal,
+  exact recursion/ownership and resulting mode checks; explicit notation for
+  numeric/symbolic tasks. Symbolic directory assignment preserves SUID/SGID as
+  GNU chmod does. No learner input is executed. ACLs and chattr/lsattr excluded.
+- RU/EN tasks/labels/help, short-response labels without irrelevant trees,
+  explanatory feedback, conversion including uppercase S/T. Existing version-1
+  file scenarios and template keys keep their grading. No schema migration.
+  qtype_linuxcmd 2026111003 / 0.3.0; mod_practicum 2026111008 / 0.9.0 requires it.
+- Actual validation: PHP 8.4.24 extracted from official Debian trixie packages.
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  75,491 assertions passed (Moodle stand-ins, NOT native PHPUnit/core/DB).
+  Includes all 27 Linux types × 5 path settings, roundtrip generation, frozen
+  state/regrading, notation/effect/path/flag rejection and permissions once plans.
+- `python work/verify-permissions.py`: all 4,096 octal masks match Python
+  stat.filemode, 288 symbolic transformations match GNU chmod on scratch regular
+  files/directories. This uses generated controlled fixtures, never learner input.
+  `work/check-permission-languages.php`: all task strings/placeholders pass RU/EN.
+- All 79 source PHP files pass syntax. Packaging tests: 2 passed; mock deployment
+  success/failure/unknown-type checks passed. git diff --check passed.
+- Native Moodle tests extended for all-type XML settings, mixed training/exam,
+  unchanged reload after settings changes, backup/restore of all Linux types.
+  NOT RUN: Moodle 5.3/core/DB/PHPUnit, native UI/upgrade; this environment has no
+  installed Moodle or DB/runtime container. These remain required before rollout.
+
 ## Practicum 0.8.0: multiple types per advanced block (2026-11-10)
 
 - Published PR #17: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/17
