@@ -89,6 +89,14 @@ try {
         }
         echo "configuration::$method OK\n";
     }
+    // Only preprocessing is exercised here; this does not render a Moodle form.
+    mkdir($fixture . '/course');
+    file_put_contents($fixture . '/course/moodleform_mod.php', '<?php class moodleform_mod {}');
+    require($root . '/mod/practicum/tests/mod_form_test.php');
+    $formtest = new \mod_practicum\mod_form_test();
+    foreach (get_class_methods($formtest) as $method) {
+        if (str_starts_with($method, 'test_')) { $formtest->$method(); echo "form::$method OK\n"; }
+    }
     $check = new basic_testcase();
     $blocks = json_decode(\mod_practicum\local\blueprint::from_form((object)[
         'blocktype' => ['linux_copytree', 'ipv4_network'], 'blockcount' => [2, 1],
@@ -103,13 +111,17 @@ try {
             $keys[] = $task->template_key(['pathmode' => $mode]);
         }
     }
-    $check->assertCount(30, array_unique($keys));
+    $check->assertCount(count(\qtype_linuxcmd\exercise::TYPES) * count(\qtype_linuxcmd\exercise::MODES), array_unique($keys));
     try {
         \mod_practicum\local\registry::get('linux_move')->validate(['pathmode' => 'bad']);
         throw new Exception('Invalid settings were accepted');
     } catch (invalid_parameter_exception $expected) { $check->assertTrue(true); }
     echo basic_testcase::$assertions . " assertions passed (isolated; Moodle core/DB not loaded).\n";
 } finally {
+    if (is_file($fixture . '/course/moodleform_mod.php')) {
+        unlink($fixture . '/course/moodleform_mod.php');
+        rmdir($fixture . '/course');
+    }
     unlink($fixture . '/question/type/linuxcmd/question.php');
     rmdir($fixture . '/question/type/linuxcmd');
     unlink($fixture . '/question/type/questionbase.php');

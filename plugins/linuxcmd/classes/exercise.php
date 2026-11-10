@@ -7,7 +7,7 @@ defined('MOODLE_INTERNAL') || die();
 final class exercise {
     public const TYPES = ['mkdir', 'mkdirparents', 'touch', 'copyfile', 'copytree',
         'rename', 'move', 'rmdir', 'removefile', 'removetree'];
-    public const MODES = ['absolute', 'relative', 'mixed'];
+    public const MODES = ['absolute', 'relative', 'mixed', 'reverse', 'random'];
 
     public static function validate(string $type, string $mode): void {
         if (!in_array($type, self::TYPES, true) || !in_array($mode, self::MODES, true)) {
@@ -47,8 +47,16 @@ final class exercise {
             'removefile' => ['rm', [], $manual, null],
             'removetree' => ['rm', ['r'], $drafts, null],
         };
-        $sourcemode = $mode === 'absolute' ? 'absolute' : 'relative';
-        $targetmode = $mode === 'relative' ? 'relative' : 'absolute';
+        if ($mode === 'random') {
+            // Independent draws favour relative paths; no quotas within an attempt.
+            $sourcemode = random_int(1, 3) <= 2 ? 'relative' : 'absolute';
+            $targetmode = random_int(1, 3) <= 2 ? 'relative' : 'absolute';
+            $mode = $sourcemode === $targetmode ? $sourcemode :
+                ($sourcemode === 'relative' ? 'mixed' : 'reverse');
+        } else {
+            $sourcemode = in_array($mode, ['absolute', 'reverse'], true) ? 'absolute' : 'relative';
+            $targetmode = in_array($mode, ['relative', 'reverse'], true) ? 'relative' : 'absolute';
+        }
         $data = ['version' => 1, 'type' => $type, 'mode' => $mode, 'root' => $root,
             'cwd' => $cwd, 'dirs' => $dirs, 'files' => $files, 'command' => $command,
             'flags' => $flags, 'source' => $source, 'target' => $target,

@@ -25,9 +25,10 @@ needed. Do not mutate the condition in apply_attempt_state.
 
 `qtype_linuxcmd` (source `plugins/linuxcmd`) owns a literal-word parser, generated
 file/directory scenarios and automatic grading. `linux_task` registers 10 stable
-`linux_*` ids. Each block stores `pathmode` instead of IPv4 prefixes. Mixed mode
-requires a relative source and absolute destination; unary tasks use a relative
-operand. Linux and IPv4 blocks share the existing attempt/grade lifecycle.
+`linux_*` ids. Each block stores `pathmode` instead of IPv4 prefixes. New form saves use
+`random`: independent relative (2/3) or absolute (1/3) operands. `reverse` adds
+absolute source/relative destination. Legacy mixed mode still requires a relative
+source and absolute destination; unary mixed tasks use a relative operand. Linux and IPv4 blocks share the existing attempt/grade lifecycle.
 
 The generated condition, working directory, initial objects, required command,
 options, paths, operand styles and example answer are snapshotted in `_linuxcmd`.
@@ -67,3 +68,14 @@ Command modules live under classes/exercise; the similarly named existing
 qtype_ipv4\exercise class retains its public calculation and state API.
 Command templates force text entry. The semantic grammar never launches input.
 Multi-command tasks use ordered newline-separated commands and a textarea.
+
+## Category selection
+
+`registry::groups()` maps stable category ids to concrete allowlisted type ids,
+using the existing IPv4 catalog and file-operation exercise list. The form offers
+checkboxes for whole categories in each/random modes alongside individual types.
+`blueprint::from_form` expands the union once on save and stores optional `groups`
+and `individualtypes` UI metadata with the existing concrete `types` snapshot.
+Planning/backup keep that snapshot; preprocessing restores categories and extras
+separately. New catalog members enter a selected category on resave, never during
+an existing attempt. No Moodle question-bank category or schema changes.

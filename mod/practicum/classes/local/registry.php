@@ -24,6 +24,40 @@ final class registry {
         }
         throw new \invalid_parameter_exception('Unknown task type');
     }
+    /** Category membership comes from the same catalog as individual task labels. */
+    public static function groups(): array {
+        $groups = [];
+        foreach (\qtype_ipv4\exercise\catalog::groups() as $group => $types) {
+            $groups[$group] = array_map(fn($type) => 'ipv4_' . $type, $types);
+        }
+        $groups['files'] = array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\exercise::TYPES);
+        return $groups;
+    }
+
+    public static function group_labels(): array {
+        $labels = [];
+        foreach (self::groups() as $group => $types) {
+            $labels[$group] = $group === 'files' ? get_string('fileoperations', 'practicum') :
+                get_string('group_' . $group, 'qtype_ipv4');
+        }
+        return $labels;
+    }
+
+    /** Expand categories on save; saved attempts always use concrete type snapshots. */
+    public static function expand_selection(array $groups, array $types): array {
+        $catalog = self::groups();
+        foreach ($groups as $group) {
+            if (!is_string($group) || !isset($catalog[$group])) {
+                throw new \invalid_parameter_exception('Unknown task category');
+            }
+            $types = array_merge($types, $catalog[$group]);
+        }
+        foreach ($types as $type) {
+            self::get($type);
+        }
+        return array_values(array_unique($types));
+    }
+
     public static function labels(): array {
         $labels = [];
         foreach (\qtype_ipv4\exercise::ALL_TYPES as $type) {

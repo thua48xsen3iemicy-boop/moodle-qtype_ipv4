@@ -78,6 +78,37 @@ final class exercise_test extends \basic_testcase {
         $this->assertFalse(exercise::correct($d['answer'] . ' another.txt', $d));
     }
 
+    public function test_absolute_source_and_relative_destination(): void {
+        foreach (['copyfile', 'copytree', 'rename', 'move'] as $type) {
+            $data = exercise::generate($type, 'reverse');
+            $words = exercise::words($data['answer']);
+            $this->assertSame('absolute', $data['sourcemode']);
+            $this->assertSame('relative', $data['targetmode']);
+            $this->assertTrue(exercise::correct($data['answer'], $data));
+            $this->assertTrue(str_starts_with($words[count($words) - 2], '/'));
+            $this->assertFalse(str_starts_with($words[count($words) - 1], '/'));
+            $words[count($words) - 1] = $data['target'];
+            $this->assertFalse(exercise::correct(implode(' ', $words), $data));
+            $this->assertStringNotContainsString('[[', exercise::text($data));
+        }
+    }
+
+    public function test_random_paths_include_all_combinations_and_favour_relative(): void {
+        $seen = [];
+        $relative = 0;
+        // Broad bounds catch a lost weighting without depending on exact random counts.
+        for ($i = 0; $i < 1000; $i++) {
+            $data = exercise::generate('copyfile', 'random');
+            $seen[$data['mode']] = true;
+            $relative += (int)($data['sourcemode'] === 'relative');
+            $relative += (int)($data['targetmode'] === 'relative');
+            $this->assertTrue(exercise::correct($data['answer'], $data));
+            $this->assertStringNotContainsString('[[', exercise::text($data));
+        }
+        $this->assertCount(4, $seen);
+        $this->assertTrue($relative > 1100 && $relative < 1600);
+    }
+
     public function test_literal_word_grammar_never_accepts_shell_programs(): void {
         foreach (['cp a b && pwd', 'cp $(pwd) b', 'cp `pwd` b', 'cp $HOME/a b',
                 'cp a b > out', 'cp a* b', "cp a b\npwd", 'cp "a b', 'cp a b\\'] as $answer) {

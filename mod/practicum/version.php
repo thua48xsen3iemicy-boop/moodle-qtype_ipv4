@@ -6,8 +6,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 $plugin->component = 'mod_practicum';
-$plugin->version = 2026111001;
+$plugin->version = 2026111003;
 $plugin->requires = 2026100500;
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->release = '0.5.0';
-$plugin->dependencies = ['qtype_ipv4' => 2026110903, 'qtype_linuxcmd' => 2026111000];
+$plugin->release = '0.6.0';
+$plugin->dependencies = ['qtype_ipv4' => 2026110903, 'qtype_linuxcmd' => 2026111002];

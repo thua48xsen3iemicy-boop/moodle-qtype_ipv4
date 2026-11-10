@@ -17,8 +17,8 @@ final class linux_lifecycle_test extends \advanced_testcase {
         $g = $this->getDataGenerator();
         $course = $g->create_course();
         $activity = $g->create_module('practicum', [
-            'course' => $course->id, 'mode' => 'exam', 'blocktype' => ['linux_copytree'],
-            'blockcount' => [1], 'blockpathmode' => ['mixed'],
+            'course' => $course->id, 'mode' => 'exam', 'selectionmode' => 'random',
+            'selectedgroups' => ['files' => 1], 'sharedcount' => 1,
         ]);
         $student = $g->create_user();
         $g->enrol_user($student->id, $course->id, 'student');
@@ -50,8 +50,8 @@ final class linux_lifecycle_test extends \advanced_testcase {
         $restoredattempt = $DB->get_record('practicum_attempts', ['practicumid' => $restored->id], '*', MUST_EXIST);
         $restoredusage = \question_engine::load_questions_usage_by_activity($restoredattempt->usageid);
         $this->assertSame($snapshot, $restoredusage->get_question(1)->exercise);
-        $this->assertSame('copytree', $restoredusage->get_question(1)->tasktype);
-        $this->assertSame('mixed', $restoredusage->get_question(1)->pathmode);
+        $this->assertSame($snapshot['type'], $restoredusage->get_question(1)->tasktype);
+        $this->assertSame($snapshot['mode'], $restoredusage->get_question(1)->pathmode);
         $this->assertEquals(1, $restoredusage->get_total_mark());
     }
 
@@ -75,13 +75,20 @@ final class linux_lifecycle_test extends \advanced_testcase {
                 'blockcount' => array_fill(0, count($types), 1),
                 'blockprefix' => array_fill(0, count($types), [26]), 'blockpathmode' => $pathmodes,
             ]);
+            // Exercise every saved mode, including legacy blocks no longer emitted by the form.
+            $blocks = [['type' => 'ipv4_network', 'count' => 1, 'prefixes' => [26]]];
+            foreach (array_slice($types, 1, null, true) as $i => $type) {
+                $blocks[] = ['type' => $type, 'count' => 1, 'pathmode' => $pathmodes[$i]];
+            }
+            $activity->blocks = json_encode($blocks, JSON_THROW_ON_ERROR);
+            $DB->set_field('practicum', 'blocks', $activity->blocks, ['id' => $activity->id]);
             $student = $g->create_user();
             $g->enrol_user($student->id, $course->id, 'student');
             $this->setUser($student);
             $context = \context_module::instance($activity->cmid);
             $attempt = local\attempts::start($activity, $context, $student->id);
             $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
-            $this->assertCount(31, $usage->get_slots());
+            $this->assertCount(count($types), $usage->get_slots());
             $snapshots = [];
             foreach ($usage->get_slots() as $slot) {
                 $q = $usage->get_question($slot);
