@@ -1,4 +1,6 @@
 <?php
+$string['linuxtask'] = 'Linux: {$a}';
+$string['linuxfeedback'] = 'Absolute paths start with /. Relative paths start at the working directory; .. names its parent. cp preserves the source; mv moves or renames it. Use mkdir -p for missing parent directories and -r for recursive copying or removal. The example answer follows the required path styles; equivalent literal commands are also accepted.';
 // Moodle plugin, GPL v3 or later.
 /** @package mod_practicum
  * @copyright 2026 Practicum contributors

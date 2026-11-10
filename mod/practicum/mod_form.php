@@ -28,16 +28,29 @@ class mod_practicum_mod_form extends moodleform_mod {
         }
         $prefixselect = $m->createElement('select', 'blockprefix', get_string('prefixes', 'practicum'), $prefixes);
         $prefixselect->setMultiple(true);
+        $pathmodes = [];
+        foreach (\qtype_linuxcmd\exercise::MODES as $pathmode) {
+            $pathmodes[$pathmode] = get_string('mode_' . $pathmode, 'qtype_linuxcmd');
+        }
         $elements = [
             $m->createElement('select', 'blocktype', get_string('tasktype', 'practicum'), \mod_practicum\local\registry::labels()),
             $m->createElement('text', 'blockcount', get_string('count', 'practicum')),
             $prefixselect,
+            $m->createElement('select', 'blockpathmode', get_string('pathmode', 'qtype_linuxcmd'), $pathmodes),
         ];
         $blocks = empty($this->current->blocks) ? [] : json_decode($this->current->blocks, true);
-        $this->repeat_elements($elements, max(1, count($blocks)),
+        $repeats = $this->repeat_elements($elements, max(1, count($blocks)),
             ['blockcount' => ['type' => PARAM_INT, 'default' => 15],
-             'blockprefix' => ['default' => [8, 16, 24]]], 'blockrepeats', 'addblock', 1,
+             'blockprefix' => ['default' => [8, 16, 24]],
+             'blockpathmode' => ['default' => 'relative']], 'blockrepeats', 'addblock', 1,
             get_string('addblock', 'practicum'), true);
+        for ($i = 0; $i < $repeats; $i++) {
+            $m->addHelpButton('blockpathmode[' . $i . ']', 'pathmode', 'qtype_linuxcmd');
+            $m->hideIf('blockprefix[' . $i . ']', 'blocktype[' . $i . ']', 'in',
+                array_map(fn($type) => 'linux_' . $type, \qtype_linuxcmd\exercise::TYPES));
+            $m->hideIf('blockpathmode[' . $i . ']', 'blocktype[' . $i . ']', 'in',
+                array_map(fn($type) => 'ipv4_' . $type, \qtype_ipv4\exercise::TYPES));
+        }
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
     }
@@ -46,7 +59,8 @@ class mod_practicum_mod_form extends moodleform_mod {
             foreach (json_decode($defaults['blocks'], true) as $i => $block) {
                 $defaults['blocktype'][$i] = $block['type'];
                 $defaults['blockcount'][$i] = $block['count'];
-                $defaults['blockprefix'][$i] = $block['prefixes'];
+                $defaults['blockprefix'][$i] = $block['prefixes'] ?? [8, 16, 24];
+                $defaults['blockpathmode'][$i] = $block['pathmode'] ?? 'relative';
             }
         }
     }

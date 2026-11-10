@@ -28,3 +28,10 @@
   Practicum samesubnet/assignable now use native choice mode; other tasks keep
   text entry. Boolean templates use new v3 identities including answer mode,
   leaving existing v2 text templates and saved attempt state untouched.
+
+- D012: Implement Linux files/paths as a separate native `qtype_linuxcmd`, bridged
+  by `linux_task`, with 10 selectable operations and per-block absolute/relative/
+  mixed path rules. Accept equivalent literal commands by semantic path checking;
+  never execute learner input. Single-operand mixed tasks use relative paths.
+  Generated v1 conditions and required checks are saved in question-engine steps;
+  use immutable versioned template identities. Existing IPv4 ids/keys remain intact.

@@ -1,4 +1,37 @@
-# Practicum foundation verification
+# Practicum 0.3.0 Linux verification
+
+Environment: repository checkout, Debian 13, PHP 8.4.27 CLI extracted locally
+under ignored `work/php-runtime`. No installed Moodle core/database or PHPUnit.
+
+Executed:
+
+- PHP `-n -l`: all 42 PHP files in the Linux qtype, Practicum and standalone
+  harness passed syntax checks.
+- `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  **3,325 assertions passed**. Covers all 10 operations × 3 modes × 20 random
+  scenarios, literal quoting/escaping, flags, path styles, known relative-path
+  examples, missing intermediates, regular-file traversal, copy destinations,
+  trailing slashes, special dot operands, snapshot/restore/grading and existing
+  IPv4 configuration/immutable template identities. This uses stand-ins; it is
+  not PHPUnit and does not establish Moodle integration.
+- `python -m unittest discover -s tools/tests -v`: 2 packaging tests passed;
+  included deployment harness passed success/upgrade-error/cache-error/unknown
+  plugin-type cases. These use temporary fixtures, not a Moodle deployment.
+- GNU coreutils `cp` with trusted test fixtures in a fresh temporary directory:
+  recursive copy to a new `copy/` succeeds; new `copy-dot/.` and missing
+  `copy-parent/../copy-again` fail. Grading tests reflect these distinctions.
+- `python tools/package.py`: built mod_practicum (31 files), qtype_linuxcmd
+  (18 files), qtype_ipv4 (30 files). Verified ZIP integrity, manifest components,
+  install roots, no work/.git contents, and no nested plugins in qtype_ipv4.
+- `git diff --check`: passed.
+
+Added but **not run**: native question settings/XML tests and mixed-family Moodle
+lifecycle tests for training/exam, persisted state after settings edits, gradebook
+and course backup/restore with a finished Linux attempt. Actual Moodle 5.3 upgrade,
+repeated block form/browser UI and existing-attempt migration remain unverified:
+this checkout has no Moodle installation, DB or vendor/PHPUnit. No server deployed.
+
+# Practicum foundation verification (historical)
 
 Environment: Moodle 5.3+ (Build 20261030), PHP 8.4.24, PostgreSQL 17.11,
 PHPUnit 11.5.56, standard Boost, Chromium through Playwright.

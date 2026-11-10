@@ -4,7 +4,9 @@ Moodle 5.3, course activity «Практикум» (Practicum). Teacher adds the
 configures blocks and counts, and selects training or assessment. No manual bank
 population. All 12 IPv4 exercise variants are available as mixed blocks with
 independently selected allowed prefixes /1–/30.
-Future families: Linux commands, Linux paths and isolated VM lab tasks.
+Linux commands and paths are available as text-response scenarios: 10 file/directory
+operations with absolute, relative or mixed path operands. No shell is executed.
+Future families: isolated VM lab tasks.
 
 Confirmed requirements: both training and assessment, mixed task blocks, manual
 answers except clickable Yes/No for boolean tasks, independent random prefix selection. Keep the existing IPv4 plugin usable

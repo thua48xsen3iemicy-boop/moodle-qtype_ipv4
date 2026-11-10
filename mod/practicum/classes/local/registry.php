@@ -9,6 +9,11 @@ defined('MOODLE_INTERNAL') || die();
 /** Explicit allowlist: never instantiate class names received from a request. */
 final class registry {
     public static function get(string $type): task_type {
+        foreach (\qtype_linuxcmd\exercise::TYPES as $exercise) {
+            if ($type === 'linux_' . $exercise) {
+                return new linux_task($exercise);
+            }
+        }
         if ($type === 'ipv4_network') {
             return new ipv4_network();
         }
@@ -23,6 +28,10 @@ final class registry {
         $labels = [];
         foreach (\qtype_ipv4\exercise::TYPES as $type) {
             $id = 'ipv4_' . $type;
+            $labels[$id] = self::get($id)->label();
+        }
+        foreach (\qtype_linuxcmd\exercise::TYPES as $type) {
+            $id = 'linux_' . $type;
             $labels[$id] = self::get($id)->label();
         }
         return $labels;

@@ -12,6 +12,11 @@ final class blueprint {
         $blocks = [];
         foreach (($data->blockcount ?? []) as $i => $count) {
             if ((int)$count === 0) { continue; }
+            if (str_starts_with($data->blocktype[$i], 'linux_')) {
+                $blocks[] = ['type' => $data->blocktype[$i], 'count' => (int)$count,
+                    'pathmode' => $data->blockpathmode[$i] ?? 'relative'];
+                continue;
+            }
             $selected = $data->blockprefix[$i] ?? [];
             if (!is_array($selected)) {
                 // Accept legacy comma-separated submissions and saved configurations.

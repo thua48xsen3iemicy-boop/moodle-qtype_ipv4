@@ -11,7 +11,7 @@ final class configuration_test extends \advanced_testcase {
     public function test_every_qtype_exercise_is_selectable_and_has_distinct_template(): void {
         $labels = local\registry::labels();
         $keys = [];
-        $this->assertCount(count(\qtype_ipv4\exercise::TYPES), $labels);
+        $this->assertCount(count(\qtype_ipv4\exercise::TYPES) + count(\qtype_linuxcmd\exercise::TYPES), $labels);
         foreach (\qtype_ipv4\exercise::TYPES as $type) {
             $adapter = local\registry::get('ipv4_' . $type);
             $this->assertSame($adapter->label(), $labels['ipv4_' . $type]);
@@ -22,7 +22,7 @@ final class configuration_test extends \advanced_testcase {
             $this->assertNotSame($key, $adapter->template_key(['prefixes' => [24]]));
             $keys[] = $key;
         }
-        $this->assertCount(count($labels), array_unique($keys));
+        $this->assertCount(count(\qtype_ipv4\exercise::TYPES), array_unique($keys));
         $this->assertInstanceOf(local\ipv4_network::class, local\registry::get('ipv4_network'));
     }
 
@@ -73,5 +73,34 @@ final class configuration_test extends \advanced_testcase {
     public function test_empty_prefix_selection_is_rejected(): void {
         $this->expectException(\invalid_parameter_exception::class);
         local\registry::get('ipv4_network')->validate(['prefixes' => []]);
+    }
+
+    public function test_linux_and_ipv4_blocks_keep_separate_settings(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'blocktype' => ['linux_copytree', 'ipv4_network', 'linux_mkdir'],
+            'blockcount' => [2, 1, 1], 'blockprefix' => [[], [26], ['invalid-but-unused']],
+            'blockpathmode' => ['mixed', 'unused', 'absolute'],
+        ]), true);
+        $this->assertSame(['type' => 'linux_copytree', 'count' => 2, 'pathmode' => 'mixed'], $blocks[0]);
+        $this->assertSame([26], $blocks[1]['prefixes']);
+        $this->assertSame('absolute', $blocks[2]['pathmode']);
+        $this->assertCount(4, local\blueprint::plan($blocks));
+        $keys = [];
+        foreach (\qtype_linuxcmd\exercise::TYPES as $type) {
+            foreach (\qtype_linuxcmd\exercise::MODES as $mode) {
+                $task = local\registry::get('linux_' . $type);
+                $key = $task->template_key(['pathmode' => $mode]);
+                $this->assertSame($key, $task->template_key(['pathmode' => $mode, 'prefixes' => [8]]));
+                $keys[] = $key;
+            }
+        }
+        $this->assertCount(30, array_unique($keys));
+    }
+
+    public function test_linux_rejects_unknown_path_mode(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'blocktype' => ['linux_move'], 'blockcount' => [1], 'blockpathmode' => ['shell'],
+        ]);
     }
 }

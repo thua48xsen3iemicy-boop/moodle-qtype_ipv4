@@ -21,6 +21,24 @@ form UI, implement its question type, add generation/grading/state tests. A plan
 must remain readable after code upgrades; introduce versioned migration only when
 needed. Do not mutate the condition in apply_attempt_state.
 
+## Linux command scenarios
+
+`qtype_linuxcmd` (source `plugins/linuxcmd`) owns a literal-word parser, generated
+file/directory scenarios and automatic grading. `linux_task` registers 10 stable
+`linux_*` ids. Each block stores `pathmode` instead of IPv4 prefixes. Mixed mode
+requires a relative source and absolute destination; unary tasks use a relative
+operand. Linux and IPv4 blocks share the existing attempt/grade lifecycle.
+
+The generated condition, working directory, initial objects, required command,
+options, paths, operand styles and example answer are snapshotted in `_linuxcmd`.
+Reload never regenerates. Immutable v1 template keys include operation/pathmode.
+Evaluation resolves literal paths, verifies traversed directories and checks GNU
+cp/mv destination semantics. Quotes/escapes are supported; shell expansion,
+operators, pipelines and redirects are rejected. There is no process execution.
+This is a bounded command grammar, not a full Bash or filesystem emulator.
+Grading changes must retain v1 semantics for saved scenarios and introduce a new
+scenario/template version if that contract changes.
+
 ## Future isolated execution boundary
 
 A separate lab backend will own provision/resume/status/submit-evidence/destroy.
