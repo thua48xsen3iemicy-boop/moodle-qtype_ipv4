@@ -1,5 +1,41 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.6.1: stay at the checked training question (2026-11-10)
+
+- Published PR #14: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/14
+  Awaiting user merge to main; no user-server deployment.
+
+- Branch `fix/training-question-position`, based on main b2eab11 after PR #13
+  was merged. Root cause: attempt.php redirected every POST to the bare attempt
+  URL, losing the checked question position.
+- `attempt_navigation::after_submit` uses the saved usage's native behaviour
+  submit field and outer question id to anchor the redirect. Only active training
+  checks receive a question anchor. Saving/exam/finished/expired attempts receive
+  an explicit empty fragment, preventing browsers inheriting the prior question
+  fragment. CSS scroll-margin-top keeps questions below the fixed navigation bar.
+  Native question-engine POST/redirect/GET, capabilities, sesskey, grading and
+  stored attempts remain unchanged. No client JS/AJAX or database changes.
+- mod_practicum 2026111004 / 0.6.1; qtypes unchanged.
+- PHP 8.4.27: all 44 plugin/harness files passed syntax; existing isolated suite
+  tools/check-linuxcmd.php passed 8,173 assertions; navigation fixture passed
+  11 assertions, including unknown usage/slot, save, exam and finished cases.
+- Packaging tests: 2 passed; mock deployment success/failure/unknown-type checks
+  and git diff --check passed. No real deployment was performed.
+- Chromium 156 with Python Playwright:
+  `python -u work/training-navigation/check-browser.py` passed desktop 1440 px
+  and mobile 390 px, each with JavaScript enabled/disabled. On a 50-question PHP
+  fixture using the real navigation helper and stylesheet, Check on 37 and 45
+  redirects to that question with feedback visible below a fixed header; Finish
+  clears the question fragment and returns to top. Initial browser run found
+  fragment inheritance on Finish; explicit empty fragment fixed it. Screenshots
+  and fixture scripts remain in ignored work/training-navigation/.
+- Browser fixture uses Moodle stand-ins, NOT a real Moodle site. Actual Moodle
+  5.3 API source verified for native field/id and URL fragment methods. Added a
+  real question-engine lifecycle test for redirect/finish behaviour; NOT RUN:
+  Moodle core/DB/PHPUnit are absent. Native Moodle/Boost UI, other themes and
+  browsers still need integration checks. No user-server deployment or merge.
+
+
 ## Practicum 0.6.0: category selection and file-operation naming (2026-11-10)
 
 - Published both changes together in PR #13:

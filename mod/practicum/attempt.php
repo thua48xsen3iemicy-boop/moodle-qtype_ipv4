@@ -19,8 +19,9 @@ else { require_capability('mod/practicum:attempt', $context); }
 if (data_submitted()) {
     require_sesskey();
     if (!$owner) { throw new required_capability_exception($context, 'mod/practicum:attempt', 'nopermissions', ''); }
-    \mod_practicum\local\attempts::process($id, (array)data_submitted(), optional_param('finish', false, PARAM_BOOL));
-    redirect(new moodle_url('/mod/practicum/attempt.php', ['id' => $id]));
+    $post = (array)data_submitted();
+    $attempt = \mod_practicum\local\attempts::process($id, $post, optional_param('finish', false, PARAM_BOOL));
+    redirect(\mod_practicum\local\attempt_navigation::after_submit($attempt, $post));
 }
 $attempt = \mod_practicum\local\attempts::process($id);
 $usage = question_engine::load_questions_usage_by_activity($attempt->usageid);

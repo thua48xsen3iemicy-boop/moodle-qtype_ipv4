@@ -7,6 +7,7 @@ require_once($CFG->dirroot.'/mod/practicum/lib.php');
 /** Tests activity policies against the real question engine. */
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_practicum\local\attempts::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\mod_practicum\local\blueprint::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\mod_practicum\local\attempt_navigation::class)]
 final class lifecycle_test extends \advanced_testcase {
     private function setup_activity(string $mode = 'exam'): array {
         $this->resetAfterTest(); $this->setAdminUser();
@@ -41,6 +42,25 @@ final class lifecycle_test extends \advanced_testcase {
         $this->expectException(\moodle_exception::class);
         local\attempts::start($p,$c,$u->id);
     }
+    public function test_training_check_returns_to_question_but_finish_returns_to_result(): void {
+        [$p, $user, $context] = $this->setup_activity('training');
+        $attempt = local\attempts::start($p, $context, $user->id);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $slots = $usage->get_slots();
+        $question = $usage->get_question_attempt(end($slots));
+        $post = [$question->get_behaviour_field_name('submit') => 1];
+        $url = local\attempt_navigation::after_submit($attempt, $post);
+        $this->assertSame($question->get_outer_question_div_unique_id(), parse_url($url->out(false), PHP_URL_FRAGMENT));
+        $this->assertEquals($attempt->id, $url->param('id'));
+        $this->assertSame('', parse_url(local\attempt_navigation::after_submit($attempt, [])->out(false), PHP_URL_FRAGMENT));
+        $this->assertSame('', parse_url(local\attempt_navigation::after_submit($attempt,
+            ['q999999:999_-submit' => 1])->out(false), PHP_URL_FRAGMENT));
+        $finished = local\attempts::process($attempt->id, null, true);
+        $this->assertSame('', parse_url(local\attempt_navigation::after_submit($finished, $post)->out(false), PHP_URL_FRAGMENT));
+        $attempt->mode = 'exam';
+        $this->assertSame('', parse_url(local\attempt_navigation::after_submit($attempt, $post)->out(false), PHP_URL_FRAGMENT));
+    }
+
     public function test_random_pool_resume_keeps_plan_after_configuration_edit(): void {
         global $DB;
         $this->resetAfterTest();

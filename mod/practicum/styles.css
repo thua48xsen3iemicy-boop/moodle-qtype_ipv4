@@ -1,0 +1,4 @@
+/* Keep the checked question below the fixed Moodle navigation bar. */
+.path-mod-practicum .que {
+    scroll-margin-top: 6rem;
+}

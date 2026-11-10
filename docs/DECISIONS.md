@@ -73,3 +73,10 @@
   limit. Persist concrete types plus optional groups/individualtypes UI metadata
   in blocks JSON; restore the same checkboxes and extra types on edit. Plans use
   concrete types only, preserving existing attempts and older configurations.
+
+- D017: Training Check submits keep the native question-engine POST/redirect/GET
+  flow and return to the submitted question's native fragment id. Derive control
+  names and anchors from the loaded usage, never from an arbitrary return URL or
+  slot supplied by the client. Finished/expired attempts and exam/saving requests
+  clear the fragment explicitly to prevent browser fragment inheritance. Add CSS
+  scroll margin for fixed navigation. No JS, AJAX or grading/state changes.
