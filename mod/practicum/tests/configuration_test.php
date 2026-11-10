@@ -363,6 +363,73 @@ final class configuration_test extends \advanced_testcase {
         }
     }
 
+    public function test_multiselect_blocks_apply_counts_per_type_and_keep_different_blocks(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'advanced',
+            'blocktype' => [['ipv4_network', 'ipv4_hostcount', 'linux_move', 'ipv4_network'], ['ipv4_network'], []],
+            'blockcount' => [2, 3, 0], 'blockprefix' => [[26], [16], ['ignored']],
+        ]), true);
+        $this->assertCount(2, $blocks);
+        $this->assertSame('block', $blocks[0]['layout']);
+        $this->assertSame(['ipv4_network', 'ipv4_hostcount', 'linux_move'], $blocks[0]['types']);
+        $plan = local\blueprint::plan($blocks);
+        $this->assertCount(9, $plan);
+        $counts = array_count_values(array_column($plan, 'type'));
+        $this->assertSame(5, $counts['ipv4_network']);
+        $this->assertSame(2, $counts['ipv4_hostcount']);
+        $this->assertSame(2, $counts['linux_move']);
+        $networkprefixes = [];
+        foreach ($plan as $slot) {
+            $this->assertSame(1, $slot['version']);
+            if ($slot['type'] === 'linux_move') {
+                $this->assertSame('random', $slot['settings']['pathmode']);
+                $this->assertFalse(isset($slot['settings']['prefixes']));
+            } else if ($slot['type'] === 'ipv4_network') {
+                $networkprefixes[] = $slot['settings']['prefixes'][0];
+            } else {
+                $this->assertSame([26], $slot['settings']['prefixes']);
+            }
+        }
+        $prefixcounts = array_count_values($networkprefixes);
+        $this->assertSame(2, $prefixcounts[26]);
+        $this->assertSame(3, $prefixcounts[16]);
+    }
+
+    public function test_file_only_multiselect_blocks_ignore_ipv4_prefixes(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'blocktype' => [['linux_move', 'linux_touch']], 'blockcount' => [2],
+            'blockprefix' => [['invalid-but-unused']],
+        ]), true);
+        $this->assertSame([], $blocks[0]['prefixes']);
+        $this->assertCount(4, local\blueprint::plan($blocks));
+    }
+
+    public function test_multiselect_blocks_enforce_expanded_total_limit(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'blocktype' => [['linux_move', 'linux_touch']], 'blockcount' => [51],
+        ]);
+    }
+
+    public function test_positive_block_count_requires_a_type(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)['blocktype' => [[]], 'blockcount' => [2]]);
+    }
+
+    public function test_multiselect_blocks_reject_unknown_types(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'blocktype' => [['linux_move', 'shell_exec']], 'blockcount' => [2],
+        ]);
+    }
+
+    public function test_mixed_multiselect_blocks_require_valid_ipv4_prefixes(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'blocktype' => [['linux_move', 'ipv4_network']], 'blockcount' => [2], 'blockprefix' => [[]],
+        ]);
+    }
+
     public function test_linux_rejects_unknown_path_mode(): void {
         $this->expectException(\invalid_parameter_exception::class);
         local\blueprint::validate([['type' => 'linux_move', 'count' => 1, 'pathmode' => 'shell']]);

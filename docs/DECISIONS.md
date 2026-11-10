@@ -96,3 +96,11 @@
   choices and task text. New network radio choices also include the prefix.
   Use distinct Practicum v4 network template keys with networkformat=cidr;
   other template identities stay unchanged. No DB migration or new task type.
+
+- D020: Advanced per-topic blocks accept multiple task types with the same count
+  per selected type. Deduplicate types within a row; keep separate rows independent
+  for different counts/prefixes. Single-type rows retain their legacy JSON shape.
+  Multi-type rows reuse selection=each with layout=block UI metadata so editing
+  restores the original rows instead of switching to the global each mode. Plan
+  and total-limit calculation reuse existing each semantics. Mixed IPv4/file rows
+  are supported; prefixes remain visible and apply only to IPv4. No schema change.

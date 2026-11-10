@@ -48,23 +48,38 @@ final class blueprint {
         }
         foreach (($data->blockcount ?? []) as $i => $count) {
             if ((int)$count === 0) { continue; }
-            if (str_starts_with($data->blocktype[$i], 'linux_')) {
-                $blocks[] = ['type' => $data->blocktype[$i], 'count' => (int)$count,
-                    'pathmode' => 'random'];
-                continue;
+            $types = $data->blocktype[$i] ?? [];
+            if (is_string($types)) {
+                // Legacy forms submitted a single type per block.
+                $types = [$types];
             }
-            $selected = $data->blockprefix[$i] ?? [];
-            if (!is_array($selected)) {
-                // Accept legacy comma-separated submissions and saved configurations.
-                $selected = explode(',', $selected);
+            if (!is_array($types) || !$types) {
+                throw new \invalid_parameter_exception('Select at least one block type');
             }
-            foreach ($selected as $prefix) {
-                if (!preg_match('/^([1-9]|[12][0-9]|30)$/D', (string)$prefix)) {
-                    throw new \invalid_parameter_exception('Invalid prefix');
+            $types = registry::expand_selection([], $types);
+            $prefixes = [];
+            if (array_filter($types, fn($type) => !str_starts_with($type, 'linux_'))) {
+                $selected = $data->blockprefix[$i] ?? [];
+                if (!is_array($selected)) {
+                    // Accept legacy comma-separated prefix submissions.
+                    $selected = explode(',', $selected);
                 }
+                foreach ($selected as $prefix) {
+                    if (!preg_match('/^([1-9]|[12][0-9]|30)$/D', (string)$prefix)) {
+                        throw new \invalid_parameter_exception('Invalid prefix');
+                    }
+                }
+                $prefixes = array_values(array_unique(array_map('intval', $selected)));
             }
-            $blocks[] = ['type' => $data->blocktype[$i], 'count' => (int)$count,
-                'prefixes' => array_values(array_unique(array_map('intval', $selected)))];
+            if (count($types) > 1) {
+                // Reuse per-type planning; retain the row grouping when reopening the form.
+                $blocks[] = ['selection' => 'each', 'layout' => 'block', 'types' => $types,
+                    'count' => (int)$count, 'prefixes' => $prefixes, 'pathmode' => 'random'];
+            } else if (str_starts_with($types[0], 'linux_')) {
+                $blocks[] = ['type' => $types[0], 'count' => (int)$count, 'pathmode' => 'random'];
+            } else {
+                $blocks[] = ['type' => $types[0], 'count' => (int)$count, 'prefixes' => $prefixes];
+            }
         }
         self::validate($blocks);
         return json_encode($blocks, JSON_THROW_ON_ERROR);

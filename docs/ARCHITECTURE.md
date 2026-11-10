@@ -97,3 +97,14 @@ Legacy snapshots without the marker retain bare-address answers/choices and thei
 old task text on restore/regrade. Low-level network calculations remain bare IPv4;
 other exercise formats are unchanged. Practicum network templates use v4 identities
 so the new feedback is saved separately from immutable older templates.
+
+## Multiselect blocks
+
+Advanced blocktype controls submit arrays per repeated row; legacy scalar posts
+are still accepted. One-type rows save the original concrete type/count/settings
+shape. Multi-type rows save selection=each, layout=block, types/count/prefixes/
+pathmode, reusing existing validation and planning. layout only controls form
+preprocessing, keeping the row groups/counts on edit. The union within each row is
+unique; different rows may intentionally repeat a type with other counts/prefixes.
+Prefix controls stay visible for mixed selections, and file operations ignore them.
+Existing version-1 attempt plans, templates and saved attempts are unchanged.

@@ -1,9 +1,39 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.8.0: multiple types per advanced block (2026-11-10)
+
+- Branch `feat/multiselect-question-blocks`, based on main 8ca9ced after PR #16.
+- Advanced blocktype is now a native multiple autocomplete. Count label and RU/EN
+  instructions clarify N per selected type (3 × 5 = 15), additional blocks for
+  other counts/prefixes. Prefixes remain visible with help explaining IPv4-only
+  use; the old hide rule was unsafe for mixed IPv4/file multiselects.
+- Legacy scalar form values remain accepted. Single-type rows retain old JSON;
+  multi-type rows use existing each planning with layout=block UI metadata.
+  Preprocessing restores grouped rows/counts/prefixes, and old single types become
+  one-item multiselects. Deduplicate within each row; independent rows can repeat
+  a type with different settings. Expanded total limit remains 100.
+- mod_practicum 2026111007 / 0.8.0. No DB/qtype/template changes; saved attempt
+  plans and conditions remain unchanged.
+- Isolated PHP 8.4.27 harness:
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  66,083 assertions passed with Moodle stand-ins. Covers per-type counts across
+  multiple rows, mixed families, prefix isolation, row deduplication, zero-count
+  deletion, limits, empty/unknown types, edit grouping and legacy form roundtrip,
+  plus existing IPv4/CIDR/path/state regressions.
+- PHP 8.4.27 syntax: all 77 source PHP files passed. Two packaging tests, mock
+  deployment success/failure/unknown-type checks and git diff --check passed.
+- Added a native lifecycle test for grouped mixed blocks, actual counts, grading
+  and unchanged resume after configuration edits. NOT RUN: Moodle 5.3/core/DB/
+  PHPUnit and native repeated autocomplete UI; this checkout lacks Moodle/DB.
+  Verified Moodle 5.3 source supports cloned autocomplete/select attributes in
+  repeat_elements; actual core/Boost rendering still needs integration checking.
+- No user-server deployment or PR merge performed.
+
+
 ## IPv4 0.5.0 / Practicum 0.7.1: network CIDR answers (2026-11-10)
 
 - Published PR #16: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/16
-  Awaiting user merge; no user-server deployment.
+  Merged by user into main (8ca9ced); no user-server deployment.
 
 - Branch `feat/require-network-prefix`, based on main d1f6a03 after PR #15 merged.
 - New network-address attempts require address/prefix. Both parts are checked;
