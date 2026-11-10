@@ -2,6 +2,9 @@
 
 ## IPv4 0.5.0 / Practicum 0.7.1: network CIDR answers (2026-11-10)
 
+- Published PR #16: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/16
+  Awaiting user merge; no user-server deployment.
+
 - Branch `feat/require-network-prefix`, based on main d1f6a03 after PR #15 merged.
 - New network-address attempts require address/prefix. Both parts are checked;
   missing prefix is invalid format, wrong prefix/address grades 0. Dotted-mask
