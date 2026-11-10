@@ -2,6 +2,9 @@
 
 ## Practicum 0.7.0: one question per selected type (2026-11-10)
 
+- Published PR #15: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/15
+  Awaiting user merge; no user-server deployment.
+
 - Branch `feat/one-question-per-type`, based on main d3f5837 after PR #14 merged.
 - Added explicit once selection mode (“One question per type, no repeats”).
   Selected categories and extra individual types expand to a unique union;
