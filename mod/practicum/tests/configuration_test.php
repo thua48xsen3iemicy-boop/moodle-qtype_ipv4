@@ -97,6 +97,83 @@ final class configuration_test extends \advanced_testcase {
         $this->assertCount(30, array_unique($keys));
     }
 
+    public function test_equal_selection_preserves_counts_and_family_settings(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectedtypes' => ['ipv4_network', 'linux_move', 'ipv4_network'],
+            'sharedcount' => 3, 'sharedprefix' => [26], 'sharedpathmode' => 'mixed',
+        ]), true);
+        $plan = local\blueprint::plan($blocks);
+        $this->assertCount(6, $plan);
+        $counts = array_count_values(array_column($plan, 'type'));
+        $this->assertSame(3, $counts['ipv4_network']);
+        $this->assertSame(3, $counts['linux_move']);
+        foreach ($plan as $slot) {
+            $this->assertSame($slot['type'], $slot['settings']['type']);
+            if ($slot['type'] === 'linux_move') {
+                $this->assertSame('mixed', $slot['settings']['pathmode']);
+                $this->assertFalse(isset($slot['settings']['prefixes']));
+            } else {
+                $this->assertSame([26], $slot['settings']['prefixes']);
+            }
+        }
+        // Stored configuration can be used again without changing an existing plan.
+        $snapshot = json_encode($plan);
+        local\blueprint::plan($blocks);
+        $this->assertSame($snapshot, json_encode($plan));
+    }
+
+    public function test_random_selection_has_exact_total_and_only_allowed_types(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'random', 'selectedtypes' => ['ipv4_network', 'linux_move'],
+            'sharedcount' => 10, 'sharedprefix' => [26], 'sharedpathmode' => 'absolute',
+        ]), true);
+        for ($attempt = 0; $attempt < 20; $attempt++) {
+            $plan = local\blueprint::plan($blocks);
+            $this->assertCount(10, $plan);
+            foreach ($plan as $slot) {
+                $this->assertTrue(in_array($slot['type'], $blocks[0]['types'], true));
+                local\registry::get($slot['type'])->validate($slot['settings']);
+            }
+        }
+    }
+
+    public function test_select_all_includes_every_registered_type(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectalltypes' => 1, 'sharedcount' => 1,
+            'sharedprefix' => [24], 'sharedpathmode' => 'relative',
+        ]), true);
+        $this->assertSame(array_keys(local\registry::labels()), $blocks[0]['types']);
+        $this->assertCount(count(local\registry::labels()), local\blueprint::plan($blocks));
+    }
+
+    public function test_equal_selection_enforces_total_limit(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectedtypes' => ['ipv4_network', 'linux_move'],
+            'sharedcount' => 51, 'sharedprefix' => [24], 'sharedpathmode' => 'relative',
+        ]);
+    }
+
+    public function test_random_selection_requires_topics(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)['selectionmode' => 'random', 'sharedcount' => 10]);
+    }
+
+    public function test_simple_selection_rejects_malformed_prefix(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'selectionmode' => 'random', 'selectedtypes' => ['ipv4_network'],
+            'sharedcount' => 6, 'sharedprefix' => ['26garbage'],
+        ]);
+    }
+
+    public function test_random_selection_rejects_unknown_type(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)[
+            'selectionmode' => 'random', 'selectedtypes' => ['shell_exec'], 'sharedcount' => 10,
+        ]);
+    }
+
     public function test_linux_rejects_unknown_path_mode(): void {
         $this->expectException(\invalid_parameter_exception::class);
         local\blueprint::from_form((object)[
