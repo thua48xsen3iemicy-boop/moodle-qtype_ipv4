@@ -103,7 +103,7 @@ try {
             $keys[] = $task->template_key(['pathmode' => $mode]);
         }
     }
-    $check->assertCount(30, array_unique($keys));
+    $check->assertCount(count(\qtype_linuxcmd\exercise::TYPES) * count(\qtype_linuxcmd\exercise::MODES), array_unique($keys));
     try {
         \mod_practicum\local\registry::get('linux_move')->validate(['pathmode' => 'bad']);
         throw new Exception('Invalid settings were accepted');

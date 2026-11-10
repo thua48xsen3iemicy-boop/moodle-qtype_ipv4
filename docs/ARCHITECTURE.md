@@ -25,9 +25,10 @@ needed. Do not mutate the condition in apply_attempt_state.
 
 `qtype_linuxcmd` (source `plugins/linuxcmd`) owns a literal-word parser, generated
 file/directory scenarios and automatic grading. `linux_task` registers 10 stable
-`linux_*` ids. Each block stores `pathmode` instead of IPv4 prefixes. Mixed mode
-requires a relative source and absolute destination; unary tasks use a relative
-operand. Linux and IPv4 blocks share the existing attempt/grade lifecycle.
+`linux_*` ids. Each block stores `pathmode` instead of IPv4 prefixes. New form saves use
+`random`: independent relative (2/3) or absolute (1/3) operands. `reverse` adds
+absolute source/relative destination. Legacy mixed mode still requires a relative
+source and absolute destination; unary mixed tasks use a relative operand. Linux and IPv4 blocks share the existing attempt/grade lifecycle.
 
 The generated condition, working directory, initial objects, required command,
 options, paths, operand styles and example answer are snapshotted in `_linuxcmd`.

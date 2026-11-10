@@ -28,7 +28,7 @@ final class blueprint {
             $blocks = [['selection' => $mode, 'types' => array_values(array_unique($types)),
                 'count' => (int)($data->sharedcount ?? 0),
                 'prefixes' => array_values(array_unique(array_map('intval', $prefixes))),
-                'pathmode' => $data->sharedpathmode ?? 'relative']];
+                'pathmode' => 'random']];
             self::validate($blocks);
             return json_encode($blocks, JSON_THROW_ON_ERROR);
         }
@@ -36,7 +36,7 @@ final class blueprint {
             if ((int)$count === 0) { continue; }
             if (str_starts_with($data->blocktype[$i], 'linux_')) {
                 $blocks[] = ['type' => $data->blocktype[$i], 'count' => (int)$count,
-                    'pathmode' => $data->blockpathmode[$i] ?? 'relative'];
+                    'pathmode' => 'random'];
                 continue;
             }
             $selected = $data->blockprefix[$i] ?? [];

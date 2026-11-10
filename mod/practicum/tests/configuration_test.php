@@ -81,9 +81,9 @@ final class configuration_test extends \advanced_testcase {
             'blockcount' => [2, 1, 1], 'blockprefix' => [[], [26], ['invalid-but-unused']],
             'blockpathmode' => ['mixed', 'unused', 'absolute'],
         ]), true);
-        $this->assertSame(['type' => 'linux_copytree', 'count' => 2, 'pathmode' => 'mixed'], $blocks[0]);
+        $this->assertSame(['type' => 'linux_copytree', 'count' => 2, 'pathmode' => 'random'], $blocks[0]);
         $this->assertSame([26], $blocks[1]['prefixes']);
-        $this->assertSame('absolute', $blocks[2]['pathmode']);
+        $this->assertSame('random', $blocks[2]['pathmode']);
         $this->assertCount(4, local\blueprint::plan($blocks));
         $keys = [];
         foreach (\qtype_linuxcmd\exercise::TYPES as $type) {
@@ -94,7 +94,7 @@ final class configuration_test extends \advanced_testcase {
                 $keys[] = $key;
             }
         }
-        $this->assertCount(30, array_unique($keys));
+        $this->assertCount(count(\qtype_linuxcmd\exercise::TYPES) * count(\qtype_linuxcmd\exercise::MODES), array_unique($keys));
     }
 
     public function test_equal_selection_preserves_counts_and_family_settings(): void {
@@ -110,7 +110,7 @@ final class configuration_test extends \advanced_testcase {
         foreach ($plan as $slot) {
             $this->assertSame($slot['type'], $slot['settings']['type']);
             if ($slot['type'] === 'linux_move') {
-                $this->assertSame('mixed', $slot['settings']['pathmode']);
+                $this->assertSame('random', $slot['settings']['pathmode']);
                 $this->assertFalse(isset($slot['settings']['prefixes']));
             } else {
                 $this->assertSame([26], $slot['settings']['prefixes']);
@@ -174,10 +174,30 @@ final class configuration_test extends \advanced_testcase {
         ]);
     }
 
+    public function test_new_forms_automatically_randomise_paths_and_legacy_plans_stay_fixed(): void {
+        foreach (['advanced', 'each', 'random'] as $selection) {
+            $blocks = json_decode(local\blueprint::from_form((object)[
+                'selectionmode' => $selection, 'selectedtypes' => ['linux_copyfile'],
+                'sharedcount' => 4, 'blocktype' => ['linux_copyfile'], 'blockcount' => [4],
+            ]), true);
+            foreach (local\blueprint::plan($blocks) as $slot) {
+                $this->assertSame('random', $slot['settings']['pathmode']);
+            }
+        }
+        foreach (['absolute', 'relative', 'mixed'] as $mode) {
+            $settings = ['type' => 'linux_copyfile', 'count' => 1, 'pathmode' => $mode];
+            $slot = local\blueprint::plan([$settings])[0];
+            $this->assertSame($settings, $slot['settings']);
+            $key = 'practicum_linuxcmd_v1_' . sha1(json_encode([
+                'type' => 'copyfile', 'pathmode' => $mode,
+            ], JSON_THROW_ON_ERROR));
+            $this->assertSame($key, local\registry::get('linux_copyfile')->template_key($settings));
+            $this->assertNotSame($key, local\registry::get('linux_copyfile')->template_key(['pathmode' => 'random']));
+        }
+    }
+
     public function test_linux_rejects_unknown_path_mode(): void {
         $this->expectException(\invalid_parameter_exception::class);
-        local\blueprint::from_form((object)[
-            'blocktype' => ['linux_move'], 'blockcount' => [1], 'blockpathmode' => ['shell'],
-        ]);
+        local\blueprint::validate([['type' => 'linux_move', 'count' => 1, 'pathmode' => 'shell']]);
     }
 }

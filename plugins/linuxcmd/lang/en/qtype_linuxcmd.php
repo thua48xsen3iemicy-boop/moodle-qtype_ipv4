@@ -8,7 +8,7 @@ $string['pluginnamesummary'] = 'Create, copy, move and remove files and director
 $string['privacy:metadata'] = 'This question type stores settings only. Moodle core owns responses and attempt state.';
 $string['tasktype'] = 'File operation';
 $string['pathmode'] = 'Path style (Linux)';
-$string['pathmode_help'] = 'Absolute: all paths start at /. Relative: all paths start at the working directory. Mixed: relative source and absolute destination; single-operand exercises use a relative path.';
+$string['pathmode_help'] = 'Random mode chooses each path independently: relative with probability 2/3, absolute 1/3. Both mixed combinations are available. Absolute: all paths start at /. Relative: all paths start at the working directory. Mixed: relative source and absolute destination; single-operand exercises use a relative path.';
 $string['mode_absolute'] = 'Absolute paths';
 $string['mode_relative'] = 'Relative paths';
 $string['mode_mixed'] = 'Relative source, absolute destination';
@@ -41,3 +41,7 @@ $string['task_move'] = 'Move file {$a->source} so its full path becomes {$a->tar
 $string['task_rmdir'] = 'Remove empty directory {$a->source} using rmdir.';
 $string['task_removefile'] = 'Remove file {$a->source} using rm.';
 $string['task_removetree'] = 'Remove directory {$a->source} and all its contents using rm.';
+
+$string['mode_random'] = 'Random, favouring relative paths';
+$string['mode_reverse'] = 'Absolute source, relative destination';
+$string['rule_reverse'] = 'Use an absolute source path and a destination path relative to the working directory.';

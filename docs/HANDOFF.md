@@ -1,5 +1,31 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.5.1: automatic Linux path styles (2026-11-10)
+
+- Branch `feat/random-linux-paths`. Removed shared and repeated per-block path
+  selectors from activity creation/editing, including preprocessing/help/hide rules.
+  Form saves use `random`; submitted obsolete path fields cannot override it.
+- Each operand independently chooses relative with probability 2/3, absolute 1/3.
+  Added `reverse` for absolute source/relative destination; all four combinations
+  can appear. Conditions specify the requirement; structure renderer unchanged.
+  Native quiz editor retains manual modes and now also exposes reverse/random.
+- Existing saved blocks keep their mode until resaved. Started attempts, old v1
+  grading and template keys stay unchanged. Random templates have distinct keys;
+  generated concrete mode/styles are frozen in `_linuxcmd`. No table migration.
+- mod_practicum 2026111002 / 0.5.1 requires qtype_linuxcmd 2026111001 / 0.2.0.
+- PHP 8.4.27 extracted from official Debian packages into ignored work/php-runtime.
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  7,915 assertions passed (isolated stand-ins, not Moodle/PHPUnit). All 42 plugin
+  and harness PHP files passed syntax. Coverage: all 10 operations × 5 modes,
+  both mixed directions, random weighting/combinations, frozen state/regrading,
+  form modes, obsolete fields, old template identities and IPv4 regressions.
+- Packaging unit tests: 2 passed; mocked deployment success/failure/unknown-type
+  checks passed. `git diff --check` passed. These are not a real deployment.
+- Updated real Moodle lifecycle tests for random backup/restore and all saved
+  modes. NOT RUN: Moodle 5.3/DB/PHPUnit/browser checks, because this checkout has
+  no Moodle installation/database/web app. No server deployment or merge.
+
+
 ## Practicum 0.4.0: Linux files and paths
 
 - PR #11: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/11
