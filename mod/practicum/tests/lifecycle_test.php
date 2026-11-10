@@ -41,6 +41,43 @@ final class lifecycle_test extends \advanced_testcase {
         $this->expectException(\moodle_exception::class);
         local\attempts::start($p,$c,$u->id);
     }
+    public function test_random_pool_resume_keeps_plan_after_configuration_edit(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $g = $this->getDataGenerator();
+        $course = $g->create_course();
+        $p = $g->create_module('practicum', [
+            'course' => $course->id, 'mode' => 'training', 'selectionmode' => 'random',
+            'selectedtypes' => ['ipv4_network', 'linux_move'], 'sharedcount' => 6,
+            'sharedprefix' => [26], 'sharedpathmode' => 'mixed',
+        ]);
+        $student = $g->create_user();
+        $g->enrol_user($student->id, $course->id, 'student');
+        $this->setUser($student);
+        $context = \context_module::instance($p->cmid);
+        $attempt = local\attempts::start($p, $context, $student->id);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $this->assertCount(6, $usage->get_slots());
+        $plan = $attempt->plan;
+        $p->blocks = local\blueprint::from_form((object)[
+            'selectionmode' => 'each', 'selectedtypes' => ['ipv4_hostcount'],
+            'sharedcount' => 2, 'sharedprefix' => [24],
+        ]);
+        $DB->set_field('practicum', 'blocks', $p->blocks, ['id' => $p->id]);
+        $resumed = local\attempts::start($p, $context, $student->id);
+        $this->assertEquals($attempt->id, $resumed->id);
+        $this->assertSame($plan, $resumed->plan);
+        foreach ($usage->get_slots() as $slot) {
+            $usage->process_action($slot, $usage->get_question($slot)->get_correct_response());
+        }
+        \question_engine::save_questions_usage_by_activity($usage);
+        $finished = local\attempts::process($attempt->id, null, true);
+        $this->assertEquals(100, $finished->grade);
+        $next = local\attempts::start($p, $context, $student->id);
+        $this->assertCount(2, json_decode($next->plan, true));
+    }
+
     public function test_training_is_untimed_and_does_not_gradebook(): void {
         global $DB;
         [$p,$u,$c]=$this->setup_activity('training');

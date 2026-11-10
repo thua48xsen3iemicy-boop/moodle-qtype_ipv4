@@ -198,3 +198,27 @@ Do not overwrite other agents' notes; append decision/result with context and te
   Screenshots and logs in ignored work/wide-*. Custom themes and browsers other
   than Chromium were not checked. Existing 44-test run is the previous release's
   result; this small display change was verified directly in the browser.
+
+## Practicum 0.5.0: multi-topic configuration (2026-11-10)
+
+- Branch `feat/practicum-multiselect`. Three form modes: existing per-topic blocks,
+  same N per selected topic, or N total from independently random selected types.
+  Searchable native Moodle multiple autocomplete and select-all checkbox; shared
+  prefix/path settings; Russian/English instructions. Existing activities reopen
+  with their original mode/counts, simple selections round-trip in blocks JSON.
+- Random types sample with replacement; topics may repeat or be absent. Equal
+  counts enforce the 100-slot total, not just the per-topic count. Selected ids
+  are allowlisted. No table changes; mod version 2026111001 / release 0.5.0.
+- Pools expand only at new attempt creation into ordinary concrete slots.
+  Existing attempts, template keys, grading and prefix randomness remain intact.
+- Actual validation: Debian PHP 8.4.27 extracted locally under ignored work/;
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/usr/lib/x86_64-linux-gnu" work/php-runtime/usr/bin/php8.4 -n tools/check-linuxcmd.php`
+  passed 3744 assertions (isolated stand-ins, NOT Moodle core/DB). All seven
+  changed PHP files passed `php8.4 -n -l`; `git diff --check` passed.
+- Added real-Moodle lifecycle regression for pool creation, saved plan resume
+  after settings edits, full grading and next-attempt settings. NOT RUN: this
+  checkout has no Moodle installation/vendor/DB; Docker socket access denied.
+  Required on Moodle 5.3: mod_practicum PHPUnit suite and browser checks for new
+  activity, all three mode switches, searchable multi-selection/select-all,
+  validation errors, edit/save/reopen and existing activity/attempt preservation.
+- No user-server deployment, push, merge or PR creation performed.

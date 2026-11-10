@@ -44,3 +44,13 @@
   never execute learner input. Single-operand mixed tasks use relative paths.
   Generated v1 conditions and required checks are saved in question-engine steps;
   use immutable versioned template identities. Existing IPv4 ids/keys remain intact.
+
+- D014: Practicum adds searchable multi-topic selection alongside legacy per-topic
+  blocks. `each` means N generated questions per selected stable type; `random`
+  means N total slots, each independently choosing a selected type uniformly with
+  replacement (no quotas or guarantee that every type appears). A select-all
+  checkbox resolves the current registry on save, storing explicit ids. Shared
+  IPv4 prefixes and Linux path mode are stored in the existing blocks JSON with
+  selection/types/count; no database migration. Plan creation resolves pools to
+  ordinary version-1 concrete slots, keeping existing attempts/templates intact.
+  Existing activities reopen in advanced mode, new ones default to equal counts.

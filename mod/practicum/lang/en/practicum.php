@@ -59,3 +59,11 @@ $string['explanation_nextsubnet'] = 'The next subnet starts immediately after th
 $string['explanation_hostcount'] = 'Assignable hosts in a conventional subnet: 2^(32 − prefix) − 2, excluding network and broadcast.';
 
 $string['commandexplanation'] = 'Compare your response with the reference answer. Commands are checked using the supported teaching syntax and are never executed on the server.';
+$string['selectionmode'] = 'Question selection';
+$string['selectionadvanced'] = 'Set count for each topic';
+$string['selectioneach'] = 'Same count for selected topics';
+$string['selectionrandom'] = 'Random questions from selected topics';
+$string['selectedtypes'] = 'Topics / question types';
+$string['selectalltypes'] = 'Select all question types';
+$string['sharedcount'] = 'Question count';
+$string['selectionhint'] = 'Same count: generates this many questions for each selected topic. Random: generates this many questions in total, choosing a type independently for each question; types may repeat or be absent. Prefixes apply to IPv4 tasks; path mode applies to Linux tasks. Maximum 100 questions in total.';
