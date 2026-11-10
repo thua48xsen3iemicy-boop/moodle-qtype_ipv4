@@ -285,6 +285,77 @@ final class configuration_test extends \advanced_testcase {
         $this->assertFalse(isset($blocks[0]['individualtypes']));
     }
 
+    public function test_once_includes_every_subnet_type_exactly_once_without_a_count(): void {
+        $types = local\registry::groups()['subnet'];
+        $this->assertCount(12, $types);
+        // Omitted and stale counts must never multiply or limit the category.
+        foreach ([null, 6, 12, 100, -1] as $count) {
+            $blocks = json_decode(local\blueprint::from_form((object)[
+                'selectionmode' => 'once', 'selectedgroups' => ['subnet' => 1],
+                'sharedcount' => $count, 'sharedprefix' => [8, 16, 24],
+            ]), true);
+            $this->assertSame(1, $blocks[0]['count']);
+            for ($attempt = 0; $attempt < 10; $attempt++) {
+                $plan = local\blueprint::plan($blocks);
+                $this->assertCount(12, $plan);
+                $counts = array_count_values(array_column($plan, 'type'));
+                foreach ($types as $type) {
+                    $this->assertSame(1, $counts[$type] ?? 0);
+                }
+                foreach ($plan as $slot) {
+                    $this->assertSame([8, 16, 24], $slot['settings']['prefixes']);
+                }
+            }
+        }
+    }
+
+    public function test_once_combines_categories_and_extra_types_without_repeating_types(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'once', 'selectedgroups' => ['subnet' => 1, 'files' => 1],
+            'selectedtypes' => ['ipv4_network', 'linux_move', 'ipv4_network'], 'sharedprefix' => [26],
+        ]), true);
+        $plan = local\blueprint::plan($blocks);
+        $this->assertCount(22, $plan);
+        foreach (array_count_values(array_column($plan, 'type')) as $count) {
+            $this->assertSame(1, $count);
+        }
+        foreach ($plan as $slot) {
+            if (str_starts_with($slot['type'], 'linux_')) {
+                $this->assertSame('random', $slot['settings']['pathmode']);
+            }
+        }
+        $all = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'once', 'selectalltypes' => 1, 'sharedprefix' => [24],
+        ]), true);
+        $this->assertCount(count(local\registry::labels()), local\blueprint::plan($all));
+    }
+
+    public function test_once_requires_a_selected_category_or_type(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)['selectionmode' => 'once']);
+    }
+
+    public function test_saved_once_block_cannot_repeat_its_types(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::validate([[
+            'selection' => 'once', 'types' => ['linux_move'], 'count' => 2, 'pathmode' => 'random',
+        ]]);
+    }
+
+    public function test_once_still_enforces_the_total_question_limit(): void {
+        $block = json_decode(local\blueprint::from_form((object)[
+            'selectionmode' => 'once', 'selectalltypes' => 1, 'sharedprefix' => [24],
+        ]), true)[0];
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::validate([$block, $block]);
+    }
+
+    public function test_category_labels_display_current_type_counts(): void {
+        foreach (local\registry::groups() as $group => $types) {
+            $this->assertTrue(str_ends_with(local\registry::group_labels()[$group], ': ' . count($types)));
+        }
+    }
+
     public function test_linux_rejects_unknown_path_mode(): void {
         $this->expectException(\invalid_parameter_exception::class);
         local\blueprint::validate([['type' => 'linux_move', 'count' => 1, 'pathmode' => 'shell']]);

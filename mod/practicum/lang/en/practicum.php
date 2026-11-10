@@ -71,3 +71,7 @@ $string['fileoperations'] = 'File and path operations';
 $string['selectedgroups'] = 'Question categories';
 $string['selectedgroups_help'] = 'Select a category to include all its question types. You can combine categories and individual types below; duplicates count once. Category membership is refreshed when settings are saved; existing attempts stay unchanged.';
 $string['selectionhint'] = 'Select whole categories and/or individual types. Same count: this many questions per type, including types within categories. Random: this many questions in total, choosing each type independently; types may repeat. Prefixes apply to IPv4; path styles are automatic. Maximum 100 questions in total.';
+
+$string['selectiononce'] = 'One question per type (no repeats)';
+$string['categorywithcount'] = '{$a->name} — types: {$a->count}';
+$string['selectiononcehint'] = 'Select categories and/or individual types: each selected type appears exactly once. The question count is automatic. Category counts show the number of types. Addresses and masks are generated randomly using the allowed prefixes. Maximum 100 questions in total.';

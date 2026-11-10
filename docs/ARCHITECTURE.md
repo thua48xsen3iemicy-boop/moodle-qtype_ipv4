@@ -73,9 +73,15 @@ Multi-command tasks use ordered newline-separated commands and a textarea.
 
 `registry::groups()` maps stable category ids to concrete allowlisted type ids,
 using the existing IPv4 catalog and file-operation exercise list. The form offers
-checkboxes for whole categories in each/random modes alongside individual types.
+checkboxes for whole categories in once/each/random modes alongside individual types.
 `blueprint::from_form` expands the union once on save and stores optional `groups`
 and `individualtypes` UI metadata with the existing concrete `types` snapshot.
 Planning/backup keep that snapshot; preprocessing restores categories and extras
 separately. New catalog members enter a selected category on resave, never during
 an existing attempt. No Moodle question-bank category or schema changes.
+
+`once` persists a normal selection snapshot with count=1 and plans one slot per
+unique selected type; validation rejects any other persisted count for this mode.
+The form hides count entry and ignores stale sharedcount when saving once.
+Category labels show live catalog counts, while saved type snapshots remain fixed.
+The existing each/random modes and version-1 slot shape are unchanged.

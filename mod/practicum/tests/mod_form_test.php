@@ -20,6 +20,19 @@ final class mod_form_test extends \basic_testcase {
         $this->assertSame($saved, local\blueprint::from_form((object)$defaults));
     }
 
+    public function test_once_mode_and_categories_roundtrip_without_entering_a_count(): void {
+        $saved = local\blueprint::from_form((object)[
+            'selectionmode' => 'once', 'selectedgroups' => ['subnet' => 1], 'sharedprefix' => [24],
+        ]);
+        $defaults = ['blocks' => $saved];
+        $form = (new \ReflectionClass(\mod_practicum_mod_form::class))->newInstanceWithoutConstructor();
+        $form->data_preprocessing($defaults);
+        $this->assertSame('once', $defaults['selectionmode']);
+        $this->assertSame(['subnet' => 1], $defaults['selectedgroups']);
+        $this->assertSame([], $defaults['selectedtypes']);
+        $this->assertSame($saved, local\blueprint::from_form((object)$defaults));
+    }
+
     public function test_old_selections_and_advanced_blocks_remain_editable(): void {
         $form = (new \ReflectionClass(\mod_practicum_mod_form::class))->newInstanceWithoutConstructor();
         $saved = local\blueprint::from_form((object)[
