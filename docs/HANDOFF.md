@@ -1,5 +1,40 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.4.0: Linux files and paths
+
+- PR #11: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/11
+- Branch `feat/practicum-linux-paths` updated with main (48f444d) to preserve all
+  41 IPv4/ip-command tasks and searchable labels alongside 10 file/path tasks.
+  Module release is 0.4.0; dependency qtype_ipv4 >= 2026110903. No PR merge or
+  deployment performed.
+- New `qtype_linuxcmd` 0.1.0 at `plugins/linuxcmd` installs in
+  `public/question/type/linuxcmd`. Required by mod_practicum 0.4.0; the manifest
+  builder/deployer discovers the third component without special cases.
+- Ten `linux_*` operations: mkdir/mkdirparents/touch/copyfile/copytree/rename/
+  move/rmdir/removefile/removetree. Each block selects absolute, relative or mixed
+  paths. Mixed means relative source/absolute destination, unary uses relative.
+- Literal command parser supports quoting/escaping, permitted flags and --.
+  Checks operations, operand count/style, path traversal and destination semantics.
+  No shell/process execution; no real filesystem or terminal backend is involved.
+- Generated v1 scenarios are saved in `_linuxcmd`; template identity includes
+  type/pathmode. Reload restores original conditions. IPv4 keys/usages unchanged.
+- RU/EN UI, native qtype editor, extra-field persistence, XML import/export,
+  backup/restore handler and null Privacy provider included. Existing activity
+  lifecycle/permissions/deadlines/grades are reused.
+- Local PHP 8.4.27 (Debian CLI extracted under ignored work/php-runtime) used for
+  syntax and isolated checks. `tools/check-linuxcmd.php`: 3,499 assertions passed,
+  including existing IPv4 configuration/key regressions. This uses stand-ins,
+  NOT Moodle core/DB or PHPUnit. Packaging and mock deployment checks passed.
+  All 42 PHP files passed syntax checks; three ZIPs and manifest built/verified
+  under ignored dist/. `git diff --check` passed.
+- Real Moodle tests added for all 30 Linux type/mode combinations mixed with
+  IPv4 in training/exam, reload/settings edits, gradebook, XML and backup/restore.
+  NOT RUN: no installed Moodle, DB, vendor/PHPUnit or shared web server in this
+  checkout. Required next: install all three packages on a Moodle 5.3 test site,
+  run qtype_linuxcmd/mod_practicum suites and browser-check repeated block fields,
+  training feedback, assessment/review and upgrade with an existing IPv4 attempt.
+- See docs/VALIDATION.md for exact commands and GNU coreutils reference cases.
+
 ## Read first
 AGENTS.md → docs/PROJECT.md → docs/DECISIONS.md → docs/ARCHITECTURE.md.
 

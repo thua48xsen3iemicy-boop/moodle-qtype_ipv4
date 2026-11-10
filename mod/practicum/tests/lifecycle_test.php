@@ -74,7 +74,7 @@ final class lifecycle_test extends \advanced_testcase {
             $this->setAdminUser();
             $g = $this->getDataGenerator();
             $course = $g->create_course();
-            $types = array_keys(local\registry::labels());
+            $types = array_map(fn($type) => 'ipv4_' . $type, \qtype_ipv4\exercise::ALL_TYPES);
             $p = $g->create_module('practicum', [
                 'course' => $course->id, 'mode' => $mode,
                 'blocktype' => $types, 'blockcount' => array_fill(0, count($types), 1),

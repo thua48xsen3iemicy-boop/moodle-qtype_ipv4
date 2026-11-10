@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="question/type/linuxcmd/db" VERSION="2026111000" COMMENT="Linux command exercise options">
+  <TABLES>
+    <TABLE NAME="qtype_linuxcmd_options" COMMENT="Operation and required path style">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="tasktype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="copyfile" SEQUENCE="false"/>
+        <FIELD NAME="pathmode" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="relative" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="questionid" TYPE="foreign-unique" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

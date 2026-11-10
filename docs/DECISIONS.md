@@ -37,3 +37,10 @@
   migration as well. Searchable grouped labels and quiz topic checkboxes avoid
   an unstructured dropdown; saved teacher presets remain future work. All command
   grading is limited, in-process grammar comparison with no shell execution.
+
+- D013: Implement Linux files/paths as a separate native `qtype_linuxcmd`, bridged
+  by `linux_task`, with 10 selectable operations and per-block absolute/relative/
+  mixed path rules. Accept equivalent literal commands by semantic path checking;
+  never execute learner input. Single-operand mixed tasks use relative paths.
+  Generated v1 conditions and required checks are saved in question-engine steps;
+  use immutable versioned template identities. Existing IPv4 ids/keys remain intact.
