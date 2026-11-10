@@ -11,7 +11,7 @@ final class blueprint {
     public static function from_form(object $data): string {
         $blocks = [];
         $mode = $data->selectionmode ?? 'advanced';
-        if (!in_array($mode, ['advanced', 'each', 'random'], true)) {
+        if (!in_array($mode, ['advanced', 'each', 'random', 'once'], true)) {
             throw new \invalid_parameter_exception('Invalid selection mode');
         }
         if ($mode !== 'advanced') {
@@ -36,7 +36,7 @@ final class blueprint {
                 }
             }
             $blocks = [['selection' => $mode, 'types' => array_values(array_unique($types)),
-                'count' => (int)($data->sharedcount ?? 0),
+                'count' => $mode === 'once' ? 1 : (int)($data->sharedcount ?? 0),
                 'prefixes' => array_values(array_unique(array_map('intval', $prefixes))),
                 'pathmode' => 'random']];
             if ($groups) {
@@ -73,7 +73,8 @@ final class blueprint {
         $total = 0;
         foreach ($blocks as $block) {
             if (isset($block['selection'])) {
-                if (!in_array($block['selection'], ['each', 'random'], true) ||
+                if (!in_array($block['selection'], ['each', 'random', 'once'], true) ||
+                        (($block['selection'] === 'once') && ($block['count'] ?? null) !== 1) ||
                         empty($block['types']) || !is_array($block['types']) ||
                         count(array_unique($block['types'])) !== count($block['types'])) {
                     throw new \invalid_parameter_exception('Invalid selection');
@@ -87,7 +88,7 @@ final class blueprint {
             if ($block['count'] < 1 || $block['count'] > 100) {
                 throw new \invalid_parameter_exception('Invalid block count');
             }
-            $total += $block['count'] * (($block['selection'] ?? '') === 'each' ? count($block['types']) : 1);
+            $total += $block['count'] * (in_array($block['selection'] ?? '', ['each', 'once'], true) ? count($block['types']) : 1);
         }
         if ($total < 1 || $total > 100) {
             throw new \invalid_parameter_exception('Total must be between 1 and 100');
@@ -98,7 +99,7 @@ final class blueprint {
         $plan = [];
         foreach ($blocks as $block) {
             $types = $block['types'] ?? [$block['type']];
-            $count = $block['count'] * (($block['selection'] ?? '') === 'each' ? count($types) : 1);
+            $count = $block['count'] * (in_array($block['selection'] ?? '', ['each', 'once'], true) ? count($types) : 1);
             for ($i = 0; $i < $count; $i++) {
                 $type = ($block['selection'] ?? '') === 'random'
                     ? $types[random_int(0, count($types) - 1)] : $types[$i % count($types)];

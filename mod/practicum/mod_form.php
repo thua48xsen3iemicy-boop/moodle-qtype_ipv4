@@ -27,12 +27,16 @@ class mod_practicum_mod_form extends moodleform_mod {
             $prefixes[$prefix] = '/' . $prefix;
         }
         $m->addElement('select', 'selectionmode', get_string('selectionmode', 'practicum'), [
+            'once' => get_string('selectiononce', 'practicum'),
             'advanced' => get_string('selectionadvanced', 'practicum'),
             'each' => get_string('selectioneach', 'practicum'),
             'random' => get_string('selectionrandom', 'practicum'),
         ]);
         $m->setDefault('selectionmode', empty($this->current->blocks) ? 'each' : 'advanced');
         $m->addElement('static', 'selectionhint', '', get_string('selectionhint', 'practicum'));
+        $m->hideIf('selectionhint', 'selectionmode', 'eq', 'once');
+        $m->addElement('static', 'oncehint', '', get_string('selectiononcehint', 'practicum'));
+        $m->hideIf('oncehint', 'selectionmode', 'neq', 'once');
         $m->addElement('advcheckbox', 'selectalltypes', get_string('selectalltypes', 'practicum'));
         $categories = [];
         foreach (\mod_practicum\local\registry::group_labels() as $id => $label) {
@@ -47,6 +51,7 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->addElement('text', 'sharedcount', get_string('sharedcount', 'practicum'));
         $m->setType('sharedcount', PARAM_INT);
         $m->setDefault('sharedcount', 6);
+        $m->hideIf('sharedcount', 'selectionmode', 'eq', 'once');
         $sharedprefix = $m->addElement('select', 'sharedprefix', get_string('prefixes', 'practicum'), $prefixes);
         $sharedprefix->setMultiple(true);
         $m->setDefault('sharedprefix', [8, 16, 24]);
@@ -98,7 +103,11 @@ class mod_practicum_mod_form extends moodleform_mod {
         $errors = parent::validation($data, $files);
         try { \mod_practicum\local\blueprint::from_form((object)$data); }
         catch (\Throwable $e) {
-            $field = ($data['selectionmode'] ?? 'advanced') === 'advanced' ? 'blockcount[0]' : 'sharedcount';
+            $field = match ($data['selectionmode'] ?? 'advanced') {
+                'advanced' => 'blockcount[0]',
+                'once' => 'selectionmode',
+                default => 'sharedcount',
+            };
             $errors[$field] = get_string('invalidblocks', 'practicum');
         }
         if ($data['maxattempts'] < 0) { $errors['maxattempts'] = get_string('invalidblocks', 'practicum'); }

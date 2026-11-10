@@ -80,3 +80,11 @@
   slot supplied by the client. Finished/expired attempts and exam/saving requests
   clear the fragment explicitly to prevent browser fragment inheritance. Add CSS
   scroll margin for fixed navigation. No JS, AJAX or grading/state changes.
+
+- D018: Add explicit `once` selection mode: expand selected categories/individual
+  types to a unique union and generate exactly one slot per type. No count entry;
+  form submissions always store count=1, ignoring stale sharedcount. Persisted
+  once blocks must have count=1. Shuffle order only; no random sampling of types.
+  Generated parameters/prefixes remain independently random. Category labels
+  show current member counts. Keep each/random/advanced semantics and existing
+  attempt snapshots; no quotas for prefixes and no global parameter uniqueness.

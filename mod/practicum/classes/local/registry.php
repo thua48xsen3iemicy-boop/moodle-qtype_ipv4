@@ -37,8 +37,10 @@ final class registry {
     public static function group_labels(): array {
         $labels = [];
         foreach (self::groups() as $group => $types) {
-            $labels[$group] = $group === 'files' ? get_string('fileoperations', 'practicum') :
+            $name = $group === 'files' ? get_string('fileoperations', 'practicum') :
                 get_string('group_' . $group, 'qtype_ipv4');
+            $labels[$group] = get_string('categorywithcount', 'practicum',
+                (object)['name' => $name, 'count' => count($types)]);
         }
         return $labels;
     }

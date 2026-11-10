@@ -124,7 +124,7 @@ final class lifecycle_test extends \advanced_testcase {
         $this->assertGreaterThan(0,$a->timefinish);$this->assertEquals(0,$a->grade);
         $this->assertEquals($a,local\attempts::process($a->id,$post,true));
     }
-    public function test_all_exercises_in_mixed_activity_resume_and_grade_in_both_modes(): void {
+    public function test_once_all_ipv4_categories_resume_and_grade_in_both_modes(): void {
         global $DB;
         $this->resetAfterTest();
         foreach (['training', 'exam'] as $mode) {
@@ -133,9 +133,9 @@ final class lifecycle_test extends \advanced_testcase {
             $course = $g->create_course();
             $types = array_map(fn($type) => 'ipv4_' . $type, \qtype_ipv4\exercise::ALL_TYPES);
             $p = $g->create_module('practicum', [
-                'course' => $course->id, 'mode' => $mode,
-                'blocktype' => $types, 'blockcount' => array_fill(0, count($types), 1),
-                'blockprefix' => array_fill(0, count($types), [26]),
+                'course' => $course->id, 'mode' => $mode, 'selectionmode' => 'once',
+                'selectedgroups' => array_fill_keys(array_keys(\qtype_ipv4\exercise\catalog::groups()), 1),
+                'sharedprefix' => [26],
             ]);
             $student = $g->create_user();
             $g->enrol_user($student->id, $course->id, 'student');

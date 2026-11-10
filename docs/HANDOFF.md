@@ -1,9 +1,41 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.7.0: one question per selected type (2026-11-10)
+
+- Published PR #15: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/15
+  Awaiting user merge; no user-server deployment.
+
+- Branch `feat/one-question-per-type`, based on main d3f5837 after PR #14 merged.
+- Added explicit once selection mode (“One question per type, no repeats”).
+  Selected categories and extra individual types expand to a unique union;
+  each type contributes exactly one question, then order is shuffled. Count
+  entry is hidden and stale sharedcount ignored; saved once count must equal 1.
+- Category checkboxes display the current number of registered types, including
+  Subnets: 12. Once has its own instructions distinguishing type coverage from
+  random addresses/masks. Allowed prefixes remain configurable and independently
+  random. Each/random/advanced retain previous behaviour; new activities still
+  default to each. Once errors attach to the visible mode field, not hidden count.
+- Snapshot/UI metadata and version-1 slot shapes are reused. Existing attempts
+  and saved configurations are unchanged. No DB migration or qtype changes.
+  mod_practicum 2026111005 / 0.7.0.
+- PHP 8.4.27 syntax: all 44 plugin/harness PHP files passed. Command
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  9,476 assertions passed using stand-ins, NOT Moodle integration/PHPUnit.
+  Covers 12 subnet types exactly once over repeated plans, stale/omitted counts,
+  category+individual deduplication, select-all, invalid stored count, total limit,
+  count labels, mode/category edit roundtrip and prior generation/state regressions.
+- Two packaging tests and mock deployment success/failure/unknown-type checks
+  passed. git diff --check passed. No real deployment performed.
+- Real Moodle lifecycle test now selects all IPv4 categories in once mode and
+  checks complete type coverage, both training/exam, grading and unchanged resume
+  after settings edits. NOT RUN: Moodle 5.3/core/DB/PHPUnit and native browser
+  form checks; this checkout lacks the Moodle installation and database.
+
+
 ## Practicum 0.6.1: stay at the checked training question (2026-11-10)
 
 - Published PR #14: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/14
-  Awaiting user merge to main; no user-server deployment.
+  Merged by user into main (d3f5837); no user-server deployment.
 
 - Branch `fix/training-question-position`, based on main b2eab11 after PR #13
   was merged. Root cause: attempt.php redirected every POST to the bare attempt
