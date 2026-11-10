@@ -44,13 +44,13 @@ final class exercise_test extends \advanced_testcase {
                 for ($i = 0; $i < 20; $i++) {
                     $data = exercise::generate($type, [$prefix]);
                     $correct = exercise::answer($data);
-                    $this->assertSame($correct, exercise::normalise($correct, $type));
+                    $this->assertSame($correct, exercise::normalise($correct, $type, exercise::network_requires_prefix($data)));
                     $this->assertContains($correct, $data['choices']);
                     $this->assertSame($data, json_decode(json_encode($data), true));
                     $this->assertCount(in_array($type, ['samesubnet', 'assignable']) ? 2 : 4,
                         array_unique($data['choices']));
                     foreach ($data['choices'] as $choice) {
-                        $this->assertSame($choice, exercise::normalise($choice, $type));
+                        $this->assertSame($choice, exercise::normalise($choice, $type, exercise::network_requires_prefix($data)));
                     }
                 }
             }
@@ -67,6 +67,21 @@ final class exercise_test extends \advanced_testcase {
         $this->assertNull(exercise::normalise('10.37.19.128', 'nextsubnet'));
         $this->assertNull(exercise::normalise('10.37.19.128/33', 'nextsubnet'));
         $this->assertNull(exercise::normalise('010.37.19.128', 'nextip'));
+    }
+
+    public function test_network_cidr_format_and_legacy_answers(): void {
+        $legacy = ['type' => 'network', 'ip' => '10.37.19.214', 'prefix' => 16];
+        $this->assertSame('10.37.0.0', exercise::answer($legacy));
+        $this->assertSame('10.37.0.0/16', exercise::answer($legacy + ['networkformat' => 'cidr']));
+        $this->assertSame('10.37.0.0/16', exercise::normalise(' 10.37.0.0/16 ', 'network', true));
+        foreach (['10.37.0.0', '10.37.0.0/', '10.37.0.0/0', '10.37.0.0/31',
+                '10.37.0.0/016', '10.37.0.0/16/16', '10.37.0.0/255.255.0.0', '010.37.0.0/16'] as $bad) {
+            $this->assertNull(exercise::normalise($bad, 'network', true));
+        }
+        // Host addresses and broadcast questions still request a bare address.
+        foreach (['broadcast', 'firsthost', 'lasthost', 'nextip', 'previousip'] as $type) {
+            $this->assertNull(exercise::normalise('10.37.0.1/16', $type, true));
+        }
     }
 
     public function test_overflow_is_rejected(): void {

@@ -179,3 +179,6 @@ $string['type_diag_fix_link'] = $string['exercise_diag_fix_link'];
 $string['type_diag_fix_gateway'] = $string['exercise_diag_fix_gateway'];
 
 $string['type_addr_v6'] = $string['exercise_addr_v6'];
+
+$string['task_network_cidr'] = 'Определите адрес сети для {$a->ip}/{$a->prefix}. Ответ укажите в формате адрес/префикс. Префикс обязателен.';
+$string['invalidnetworkcidr'] = 'Введите адрес сети с префиксом, например 192.168.1.0/24. Укажите четыре октета без ведущих нулей и префикс от /1 до /30.';

@@ -11,6 +11,8 @@ The file/path family is labelled “File and path operations” in the UI. Teach
 can select entire topic categories and combine them with individual task types.
 An explicit “one question per type” mode includes every selected type once,
 without entering counts; category labels show how many types are registered.
+New network-address questions require the network address with its prefix,
+e.g. 192.168.1.0/24. Saved earlier attempts retain their original format.
 Future families: isolated VM lab tasks.
 
 Confirmed requirements: both training and assessment, mixed task blocks, manual

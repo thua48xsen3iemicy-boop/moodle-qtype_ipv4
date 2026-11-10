@@ -179,3 +179,6 @@ $string['type_diag_fix_link'] = $string['exercise_diag_fix_link'];
 $string['type_diag_fix_gateway'] = $string['exercise_diag_fix_gateway'];
 
 $string['type_addr_v6'] = $string['exercise_addr_v6'];
+
+$string['task_network_cidr'] = 'Find the network address for {$a->ip}/{$a->prefix}. Answer as address/prefix. The prefix is required.';
+$string['invalidnetworkcidr'] = 'Enter the network address with its prefix, for example 192.168.1.0/24. Use four octets without leading zeros and a prefix from /1 to /30.';

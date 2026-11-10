@@ -59,7 +59,7 @@ class qtype_ipv4_question extends question_graded_automatically {
     }
 
     public function is_complete_response(array $response) {
-        $answer = \qtype_ipv4\exercise::normalise((string)($response['answer'] ?? ''), $this->tasktype);
+        $answer = $this->normalise_answer((string)($response['answer'] ?? ''));
         return $answer !== null && ($this->answermode !== 'choice' || in_array($answer, $this->choices, true));
     }
 
@@ -71,7 +71,8 @@ class qtype_ipv4_question extends question_graded_automatically {
         if ($this->is_complete_response($response)) {
             return '';
         }
-        return get_string($this->answermode === 'choice' ? 'selectanswer' : 'invalidanswer', 'qtype_ipv4');
+        $key = \qtype_ipv4\exercise::network_requires_prefix($this->exercise) ? 'invalidnetworkcidr' : 'invalidanswer';
+        return get_string($this->answermode === 'choice' ? 'selectanswer' : $key, 'qtype_ipv4');
     }
 
     public function grade_response(array $response) {
@@ -81,10 +82,15 @@ class qtype_ipv4_question extends question_graded_automatically {
             return [$fraction, question_state::graded_state_for_fraction($fraction)];
         }
         $correct = $this->is_complete_response($response) &&
-                \qtype_ipv4\exercise::normalise((string)$response['answer'], $this->tasktype) ===
+                $this->normalise_answer((string)$response['answer']) ===
                     $this->get_correct_response()['answer'];
         $fraction = $correct ? 1.0 : 0.0;
         return [$fraction, question_state::graded_state_for_fraction($fraction)];
+    }
+
+    private function normalise_answer(string $value): ?string {
+        return \qtype_ipv4\exercise::normalise($value, $this->tasktype,
+            \qtype_ipv4\exercise::network_requires_prefix($this->exercise));
     }
 
     public function summarise_response(array $response) {
@@ -100,7 +106,8 @@ class qtype_ipv4_question extends question_graded_automatically {
             return \qtype_ipv4\exercise\catalog::task($this->exerciseparams);
         }
         $data = $this->exercise + ['ip' => $this->ip, 'prefix' => $this->prefix];
-        return get_string('task_' . $this->tasktype, 'qtype_ipv4', (object)$data);
+        $key = \qtype_ipv4\exercise::network_requires_prefix($data) ? 'task_network_cidr' : 'task_' . $this->tasktype;
+        return get_string($key, 'qtype_ipv4', (object)$data);
     }
 
     public function get_question_summary() {
