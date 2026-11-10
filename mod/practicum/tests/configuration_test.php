@@ -36,6 +36,13 @@ final class configuration_test extends \advanced_testcase {
             if (in_array($type, ['samesubnet', 'assignable'], true)) {
                 $this->assertSame('choice', $adapter->answer_mode());
                 $this->assertNotSame($oldkey, $adapter->template_key($settings));
+            } else if ($type === 'network') {
+                $this->assertSame('text', $adapter->answer_mode());
+                $this->assertNotSame($oldkey, $adapter->template_key($settings));
+                $newkey = 'practicum_ipv4_v4_' . sha1(json_encode([
+                    'type' => 'network', 'prefixes' => [26], 'networkformat' => 'cidr',
+                ], JSON_THROW_ON_ERROR));
+                $this->assertSame($newkey, $adapter->template_key($settings));
             } else {
                 $this->assertSame('text', $adapter->answer_mode());
                 $this->assertSame($oldkey, $adapter->template_key($settings));

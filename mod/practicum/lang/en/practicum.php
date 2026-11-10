@@ -45,7 +45,7 @@ $string['privacy:metadata'] = 'Stores ownership, generated plans, answers, attem
 $string['grade'] = 'Grade';
 
 $string['ipv4task'] = 'IPv4: {$a}';
-$string['explanation_network'] = 'Apply the subnet mask to the IPv4 address: all host bits become zero.';
+$string['explanation_network'] = 'Apply the subnet mask to the IPv4 address: all host bits become zero. Include the prefix in address/prefix notation.';
 $string['explanation_broadcast'] = 'Set all host bits in the network address to one.';
 $string['explanation_firsthost'] = 'The first host address is the network address plus one.';
 $string['explanation_lasthost'] = 'The last host address is the broadcast address minus one.';

@@ -88,3 +88,11 @@
   Generated parameters/prefixes remain independently random. Category labels
   show current member counts. Keep each/random/advanced semantics and existing
   attempt snapshots; no quotas for prefixes and no global parameter uniqueness.
+
+- D019: New network-address exercises require address/prefix notation. Grade both
+  the exact network address and its prefix; reject bare addresses and dotted-mask
+  suffixes. Mark new network scenarios with networkformat=cidr inside _ipv4;
+  old snapshots without the marker keep their original bare-address grading,
+  choices and task text. New network radio choices also include the prefix.
+  Use distinct Practicum v4 network template keys with networkformat=cidr;
+  other template identities stay unchanged. No DB migration or new task type.

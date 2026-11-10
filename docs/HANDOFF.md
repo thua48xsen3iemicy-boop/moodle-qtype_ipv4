@@ -1,9 +1,44 @@
 # Handoff: Practicum foundation
 
+## IPv4 0.5.0 / Practicum 0.7.1: network CIDR answers (2026-11-10)
+
+- Published PR #16: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/16
+  Awaiting user merge; no user-server deployment.
+
+- Branch `feat/require-network-prefix`, based on main d1f6a03 after PR #15 merged.
+- New network-address attempts require address/prefix. Both parts are checked;
+  missing prefix is invalid format, wrong prefix/address grades 0. Dotted-mask
+  suffixes remain unsupported. Native quiz radio choices include the prefix too.
+  Other exercise formats and the 12-type subnet category remain unchanged.
+- New snapshots store networkformat=cidr inside _ipv4. Old snapshots without it
+  retain old answers/choices/conditions and grading after restore/regrade. New
+  task/validation RU/EN strings explain the format. Low-level IPv4 parsing and
+  calculation APIs remain unchanged; response normalizer takes an optional flag.
+- Network Practicum templates now use v4 keys with networkformat=cidr, preserving
+  old questions and other template keys. qtype_ipv4 2026111001 / 0.5.0;
+  mod_practicum 2026111006 / 0.7.1 requires it. No DB schema changes.
+- PHP 8.4.27 syntax: all 77 source PHP files passed. Expanded standalone harness
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  66,045 assertions passed. Added DB-independent root IPv4 exercise/question
+  suites to the existing stand-in harness; actual core/DB suites are not run.
+  Coverage includes all /1–/30, text/choice, correct/wrong/missing prefixes,
+  malformed notation, generated choices, legacy snapshots and template isolation.
+- Chromium 156 / Python Playwright:
+  `python -u work/network-cidr/check-browser.py` passed at 1440/390 px. Fixture
+  loads real question.php and renderer.php with Moodle stand-ins. RU task/error
+  text, correct address/prefix, wrong prefix/address, missing prefix, dotted-mask
+  rejection and legacy bare-address acceptance verified. Screenshots in ignored
+  work/network-cidr/. This is NOT a real Moodle browser integration test.
+- Two packaging tests and mock deployment success/failure/unknown-type checks
+  passed; git diff --check passed. Native Moodle 5.3/DB/PHPUnit, actual upgrade,
+  full regrade/backup and Boost UI remain unrun: no Moodle install/database here.
+  No user-server deployment or merge performed.
+
+
 ## Practicum 0.7.0: one question per selected type (2026-11-10)
 
 - Published PR #15: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/15
-  Awaiting user merge; no user-server deployment.
+  Merged by user into main (d1f6a03); no user-server deployment.
 
 - Branch `feat/one-question-per-type`, based on main d3f5837 after PR #14 merged.
 - Added explicit once selection mode (“One question per type, no repeats”).
