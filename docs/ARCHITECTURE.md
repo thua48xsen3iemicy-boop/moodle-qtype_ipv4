@@ -85,3 +85,17 @@ unique selected type; validation rejects any other persisted count for this mode
 The form hides count entry and ignores stale sharedcount when saving once.
 Category labels show live catalog counts, while saved type snapshots remain fixed.
 The existing each/random modes and version-1 slot shape are unchanged.
+
+## Ready-made learning topics
+
+`learning_topic` owns versioned bundled content and maps a topic to existing
+concrete blocks. `ipv4_order_v1` uses nextip/previousip with configurable equal
+counts and the adapters' existing /24 template settings (prefix does not affect
+numeric adjacency). `blueprint::from_form` resolves the selected topic before
+reading custom hidden controls. Topic metadata is retained in block/slot settings
+and ignored by the existing question template identity. Form preprocessing
+restores topic/count; choosing custom again returns to ordinary configuration.
+The activity page reads its blocks; inline training/review theory reads the saved
+attempt plan. Backup already preserves both JSON fields. No new table or question
+family. Existing training/exam lifecycle, grade policy and completion support do
+not change. Keep v1 content when adding a later topic revision.

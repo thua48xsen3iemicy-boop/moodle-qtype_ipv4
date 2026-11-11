@@ -9,6 +9,12 @@ defined('MOODLE_INTERNAL') || die();
 /** Immutable planning input. New task families register through registry. */
 final class blueprint {
     public static function from_form(object $data): string {
+        $topic = $data->learningtopic ?? '';
+        if ($topic !== '') {
+            $blocks = learning_topic::blocks($topic, (int)($data->topiccount ?? 4));
+            self::validate($blocks);
+            return json_encode($blocks, JSON_THROW_ON_ERROR);
+        }
         $blocks = [];
         $mode = $data->selectionmode ?? 'advanced';
         if (!in_array($mode, ['advanced', 'each', 'random', 'once'], true)) {

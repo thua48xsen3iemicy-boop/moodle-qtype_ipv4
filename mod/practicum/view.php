@@ -24,6 +24,12 @@ if (optional_param('start', 0, PARAM_BOOL) && data_submitted()) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($instance->name));
 echo format_module_intro('practicum', $instance, $id);
+$topic = \mod_practicum\local\learning_topic::from_blocks(json_decode($instance->blocks, true));
+echo \mod_practicum\local\learning_topic::render($topic);
+if ($topic !== '') {
+    echo $OUTPUT->heading(get_string('topicpractice', 'practicum'), 3);
+    echo html_writer::tag('p', get_string('topicpracticehint', 'practicum'));
+}
 echo html_writer::tag('p', get_string($instance->mode, 'practicum'));
 if (has_capability('mod/practicum:attempt', $context)) {
     echo $OUTPUT->single_button(new moodle_url('/mod/practicum/view.php', ['id' => $id, 'start' => 1]),

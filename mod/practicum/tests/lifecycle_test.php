@@ -17,6 +17,36 @@ final class lifecycle_test extends \advanced_testcase {
         $u=$g->create_user();$g->enrol_user($u->id,$course->id,'student');$this->setUser($u);
         return [$p,$u,\context_module::instance($p->cmid)];
     }
+    public function test_learning_topic_question_engine_grading_and_saved_theory(): void {
+        global $DB;
+        foreach (['training', 'exam'] as $mode) {
+            [$activity, $user, $context] = $this->setup_activity($mode);
+            $activity->blocks = local\blueprint::from_form((object)[
+                'learningtopic' => local\learning_topic::IPV4_ORDER, 'topiccount' => 2,
+            ]);
+            $DB->set_field('practicum', 'blocks', $activity->blocks, ['id' => $activity->id]);
+            $attempt = local\attempts::start($activity, $context, $user->id);
+            $plan = $attempt->plan;
+            $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+            $this->assertCount(4, $usage->get_slots());
+            foreach ($usage->get_slots() as $slot) {
+                $question = $usage->get_question($slot);
+                $this->assertContains($question->exercise['type'], ['nextip', 'previousip']);
+                $usage->process_action($slot, $question->get_correct_response());
+            }
+            \question_engine::save_questions_usage_by_activity($usage);
+            $DB->set_field('practicum', 'blocks', json_encode([
+                ['type' => 'ipv4_network', 'count' => 1, 'prefixes' => [24]],
+            ]), ['id' => $activity->id]);
+            $finished = local\attempts::process($attempt->id, null, true);
+            $this->assertEquals(100, $finished->grade);
+            $this->assertSame($plan, $finished->plan);
+            $settings = array_column(json_decode($finished->plan, true), 'settings');
+            $this->assertCount(2, array_filter($settings,
+                fn($setting) => local\learning_topic::from_blocks([$setting]) !== ''));
+        }
+    }
+
     public function test_exam_snapshot_resume_grade_and_limit(): void {
         global $DB;
         [$p,$u,$c]=$this->setup_activity();
