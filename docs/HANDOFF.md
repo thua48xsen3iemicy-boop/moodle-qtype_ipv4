@@ -1,5 +1,56 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.10.0: first learning topic (2026-11-11)
+
+- Published PR #19: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/19
+  Awaiting user review/merge; no user-server deployment.
+
+- Branch `feat/ipv4-order-learning-topic`, initially based on d1f6a03; integrated main 1fbbc7a before PR.
+  Module version 2026111100 / 0.10.0 retains current qtype dependencies.
+- Teacher adds a separate native Practicum course activity, selects “IPv4 basics:
+  previous and next address” under Activity content, and chooses 1–50 questions
+  per type (default 4, eight total). Existing training/exam modes remain available.
+  This is a ready-made topic within mod_practicum, not a new Moodle component.
+- Bundled RU/EN theory covers 32 bits/four octets, 2^8 values and 0–255,
+  increment/decrement with multi-octet carry/borrow, non-wrapping global bounds,
+  numeric adjacency versus usable hosts, examples and expandable self-check.
+  Theory precedes practice on the activity page. Training has an expandable
+  inline reference; unfinished exams do not. Finished attempts show it again.
+- Uses existing ipv4_nextip/ipv4_previousip adapters, generated conditions,
+  text answers, explanations and grading. Prefix /24 is an internal adapter
+  requirement only, not shown/used in address-order questions. Existing random
+  generation includes octet-boundary cases but does not guarantee each case.
+- Versioned topic marker lives in the existing blocks JSON and ordinary concrete
+  slot settings. Backup already copies both. No DB migration, template-key change,
+  qtype change or attempt regeneration. Attempt reference reads its own plan,
+  so later activity edits cannot remove/change that saved topic identity.
+- Actual checks: PHP 8.4.27 syntax, all 78 repository PHP files passed;
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/usr/lib/x86_64-linux-gnu" work/php-runtime/usr/bin/php8.4 -n tools/check-linuxcmd.php`
+  passed 9,516 isolated assertions (Moodle stand-ins, NOT integration). New checks
+  cover type/count scope, hidden stale controls, limits, unknown topics, saved
+  markers/template reuse and form edit/custom-switch roundtrip.
+- Chromium 156.0.8078.79 via `python work/check-topic-browser.py`: RU/EN theory
+  rendered by the real helper with minimal html_writer stand-in, 1440/390 widths,
+  disclosure toggles and no horizontal overflow passed. All arithmetic examples
+  independently checked with Python ipaddress. Screenshots/fixtures in ignored
+  work/. This does NOT validate native Moodle form/Boost/attempt rendering.
+- Two packaging tests and mocked deployment success/upgrade-failure/cache-failure/
+  unknown-type checks passed; git diff --check passed. Release module archive
+  built and checked for topic inclusion/version and exclusion of scratch files.
+  Added real-Moodle lifecycle
+  coverage for both modes, correct answers/100 grade and saved topic plan after
+  activity edits. NOT RUN: Moodle 5.3 core/DB/PHPUnit absent. Required next: real
+  module upgrade, form create/edit/switch, learner training/check/resume, exam,
+  gradebook and course backup/restore on Moodle 5.3. No deployment/push/merge.
+- Pre-PR integration (2026-11-11): merged origin/main 1fbbc7a, preserved CIDR
+  requirements, multiselect blocks and Linux permissions, resolved documentation/
+  language append conflicts, assigned D022 and bumped module to 0.10.0/2026111100.
+  Revalidation: PHP 8.4.27 syntax on 80 files; isolated harness 75,531 assertions;
+  two packaging tests and mocked deployment scenarios passed. Native Moodle 5.3
+  integration remains unrun for the same missing-core/DB blocker above.
+- Scope: one mode per activity as before; no combined training/final-exam flow,
+  automatic mastery completion/unlocking, editable theory or adaptive repeats.
+
 ## Practicum 0.9.0 / Linuxcmd 0.3.0: Linux permissions (2026-11-10)
 
 - Published PR #18: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/18

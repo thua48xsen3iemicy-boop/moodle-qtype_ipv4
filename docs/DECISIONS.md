@@ -113,3 +113,13 @@
   Commands are never executed. Explicit symbolic classes only; directory special
   bit tasks require symbolic notation, with GNU directory SUID/SGID preservation
   on =. ACL and extended filesystem attributes remain outside this module.
+
+- D022: Ready-made learning topics are separately addable instances of the existing
+  Practicum module. The first, `ipv4_order_v1`, pairs bundled versioned RU/EN
+  theory with the existing nextip/previousip adapters. Store its marker in blocks
+  JSON and concrete attempt-slot settings, keeping schema, bank identities,
+  backup fields and old attempts unchanged. The reference within an attempt
+  reads its saved plan, not mutable activity configuration. Topic revisions must
+  use a new id and keep v1 content available. Custom question sets and the existing
+  single training/exam mode remain supported; combined learning stages and
+  mastery completion are deferred until this first topic is evaluated.

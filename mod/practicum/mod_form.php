@@ -13,6 +13,15 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->setType('name', PARAM_TEXT);
         $m->addRule('name', null, 'required');
         $this->standard_intro_elements();
+        $m->addElement('select', 'learningtopic', get_string('learningtopic', 'practicum'), [
+            '' => get_string('custompractice', 'practicum'),
+            \mod_practicum\local\learning_topic::IPV4_ORDER => get_string('topic_ipv4_order', 'practicum'),
+        ]);
+        $m->addHelpButton('learningtopic', 'learningtopic', 'practicum');
+        $m->addElement('text', 'topiccount', get_string('topiccount', 'practicum'));
+        $m->setType('topiccount', PARAM_INT);
+        $m->setDefault('topiccount', 4);
+        $m->hideIf('topiccount', 'learningtopic', 'eq', '');
         $m->addElement('select', 'mode', get_string('mode', 'practicum'),
             ['training' => get_string('training', 'practicum'), 'exam' => get_string('exam', 'practicum')]);
         $m->addElement('duration', 'timelimit', get_string('timelimit', 'practicum'), ['optional' => true]);
@@ -80,11 +89,28 @@ class mod_practicum_mod_form extends moodleform_mod {
             $m->addHelpButton('blockprefix[' . $i . ']', 'blockprefix', 'practicum');
         }
         $m->hideIf('addblock', 'selectionmode', 'neq', 'advanced');
+        foreach (['selectionmode', 'selectionhint', 'oncehint', 'selectalltypes', 'selectedgroups',
+                'selectedtypes', 'sharedcount', 'sharedprefix', 'addblock'] as $field) {
+            $m->hideIf($field, 'learningtopic', 'neq', '');
+        }
+        for ($i = 0; $i < $repeats; $i++) {
+            foreach (['blocktype', 'blockcount', 'blockprefix'] as $field) {
+                $m->hideIf($field . '[' . $i . ']', 'learningtopic', 'neq', '');
+            }
+        }
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
     }
     public function data_preprocessing(&$defaults) {
+        $defaults['learningtopic'] = '';
         if (!empty($defaults['blocks'])) {
+            $blocks = json_decode($defaults['blocks'], true);
+            $topic = \mod_practicum\local\learning_topic::from_blocks($blocks);
+            if ($topic !== '') {
+                $defaults['learningtopic'] = $topic;
+                $defaults['topiccount'] = $blocks[0]['count'];
+                return;
+            }
             foreach (json_decode($defaults['blocks'], true) as $i => $block) {
                 if (isset($block['selection']) && ($block['layout'] ?? '') !== 'block') {
                     $defaults['selectionmode'] = $block['selection'];
@@ -110,6 +136,9 @@ class mod_practicum_mod_form extends moodleform_mod {
                 'once' => 'selectionmode',
                 default => 'sharedcount',
             };
+            if (!empty($data['learningtopic'])) {
+                $field = 'topiccount';
+            }
             $errors[$field] = get_string('invalidblocks', 'practicum');
         }
         if ($data['maxattempts'] < 0) { $errors['maxattempts'] = get_string('invalidblocks', 'practicum'); }

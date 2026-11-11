@@ -40,6 +40,18 @@ if ($attempt->deadline && !$attempt->timefinish) {
     $PAGE->requires->js_init_code("setTimeout(function() { window.location.reload(); }, " . ($remaining * 1000 + 100) . ");");
 }
 echo $OUTPUT->header();
+if ($attempt->mode === 'training' || $attempt->timefinish) {
+    $plan = json_decode($attempt->plan, true);
+    $settings = array_column($plan, 'settings');
+    // Plans are shuffled, so the topic marker can occur in any slot.
+    foreach ($settings as $setting) {
+        $topic = \mod_practicum\local\learning_topic::from_blocks([$setting]);
+        if ($topic !== '') {
+            echo \mod_practicum\local\learning_topic::render($topic, true);
+            break;
+        }
+    }
+}
 if ($attempt->timefinish) { echo $OUTPUT->heading(get_string('result', 'practicum', format_float($attempt->grade, 2))); }
 if ($attempt->deadline && !$attempt->timefinish) {
     echo html_writer::tag('p', get_string('deadline', 'practicum', userdate($attempt->deadline)));

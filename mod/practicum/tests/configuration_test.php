@@ -8,6 +8,50 @@ defined('MOODLE_INTERNAL') || die();
 #[\PHPUnit\Framework\Attributes\CoversClass(local\ipv4_task::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(local\blueprint::class)]
 final class configuration_test extends \advanced_testcase {
+    public function test_learning_topic_reuses_adapters_and_snapshots_theory_in_plans(): void {
+        $blocks = json_decode(local\blueprint::from_form((object)[
+            'learningtopic' => local\learning_topic::IPV4_ORDER, 'topiccount' => 4,
+            // Stale hidden controls must not add unrelated questions.
+            'selectionmode' => 'random', 'selectalltypes' => 1, 'sharedcount' => 100,
+        ]), true);
+        $this->assertSame(local\learning_topic::IPV4_ORDER, local\learning_topic::from_blocks($blocks));
+        $plan = local\blueprint::plan($blocks);
+        $this->assertCount(8, $plan);
+        $counts = array_count_values(array_column($plan, 'type'));
+        $this->assertSame(4, $counts['ipv4_nextip']);
+        $this->assertSame(4, $counts['ipv4_previousip']);
+        $markers = 0;
+        foreach ($plan as $slot) {
+            $settings = $slot['settings'];
+            $this->assertSame(1, $slot['version']);
+            $adapter = local\registry::get($slot['type']);
+            $this->assertSame('text', $adapter->answer_mode());
+            $this->assertSame($adapter->template_key(['prefixes' => [24]]), $adapter->template_key($settings));
+            if (local\learning_topic::from_blocks([$settings]) !== '') {
+                $markers++;
+            }
+        }
+        $this->assertSame(4, $markers);
+        $this->assertSame('', local\learning_topic::from_blocks([['type' => 'ipv4_network']]));
+        $this->assertSame('', local\learning_topic::from_blocks([['learningtopic' => '<script>']]));
+        $this->assertCount(100, local\blueprint::plan(local\learning_topic::blocks(local\learning_topic::IPV4_ORDER, 50)));
+    }
+
+    public function test_learning_topic_rejects_unknown_content(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)['learningtopic' => 'unknown', 'topiccount' => 4]);
+    }
+
+    public function test_learning_topic_rejects_zero_questions(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)['learningtopic' => local\learning_topic::IPV4_ORDER, 'topiccount' => 0]);
+    }
+
+    public function test_learning_topic_enforces_total_question_limit(): void {
+        $this->expectException(\invalid_parameter_exception::class);
+        local\blueprint::from_form((object)['learningtopic' => local\learning_topic::IPV4_ORDER, 'topiccount' => 51]);
+    }
+
     public function test_every_qtype_exercise_is_selectable_and_has_distinct_template(): void {
         $labels = local\registry::labels();
         $keys = [];
