@@ -16,6 +16,10 @@ behaviour steps. Activity attempts store owner, plan, mode, timestamps and deadl
 Training uses immediatefeedback; exam uses deferredfeedback. Only finished exam
 attempts update gradebook (best score, 0–100). Deadline and mode are snapshotted.
 Expired attempts reject new responses and finish saved answers on access or cron.
+The optional activity time limit applies to both training and exam attempts;
+zero means untimed. Each new attempt snapshots its own deadline, so changing
+settings never retimes a running attempt (including legacy untimed training).
+Training expiry stores a reviewable result without writing a gradebook grade.
 
 Adding a family: add adapter, register stable id, add configuration validation and
 form UI, implement its question type, add generation/grading/state tests. A plan

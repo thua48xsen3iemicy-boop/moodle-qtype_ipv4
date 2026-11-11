@@ -123,3 +123,13 @@
   use a new id and keep v1 content available. Custom question sets and the existing
   single training/exam mode remain supported; combined learning stages and
   mastery completion are deferred until this first topic is evaluated.
+
+- D023: Expose the existing optional per-attempt time limit for training as well
+  as assessment. Reuse the saved deadline, browser expiry refresh and locked
+  lifecycle/cron processing; do not add a second duration field or migration.
+  On expiry finish saved responses, including unfinished questions, reject late
+  browser responses and store the result for teacher review. Training retains
+  immediate feedback, unlimited attempts and no gradebook writes. Zero remains
+  untimed; existing attempts retain their deadline, even after settings changes.
+  Save/check remains explicit (no autosave). Regular Moodle cron is required
+  for students who close the page. No response data is accepted after expiry.

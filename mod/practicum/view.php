@@ -31,6 +31,9 @@ if ($topic !== '') {
     echo html_writer::tag('p', get_string('topicpracticehint', 'practicum'));
 }
 echo html_writer::tag('p', get_string($instance->mode, 'practicum'));
+if ($instance->timelimit > 0) {
+    echo html_writer::tag('p', get_string('attempttimelimit', 'practicum', format_time($instance->timelimit)));
+}
 if (has_capability('mod/practicum:attempt', $context)) {
     echo $OUTPUT->single_button(new moodle_url('/mod/practicum/view.php', ['id' => $id, 'start' => 1]),
         get_string('start', 'practicum'), 'post');
