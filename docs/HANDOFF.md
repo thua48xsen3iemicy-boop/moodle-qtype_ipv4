@@ -2,6 +2,8 @@
 
 ## Practicum 0.11.0: timed training (2026-11-12)
 
+- Published PR #20: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/20
+  Open for review against main; no merge or user-server deployment.
 - Branch `feat/training-time-limit`, based on main `5542ce0` (PR #19 merged).
   Module version 2026111200 / 0.11.0. No DB migration or qtype changes.
 - The existing optional duration is visible in training and exam settings, with
