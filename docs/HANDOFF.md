@@ -2,6 +2,9 @@
 
 ## Practicum 0.10.0: first learning topic (2026-11-11)
 
+- Published PR #19: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/19
+  Awaiting user review/merge; no user-server deployment.
+
 - Branch `feat/ipv4-order-learning-topic`, initially based on d1f6a03; integrated main 1fbbc7a before PR.
   Module version 2026111100 / 0.10.0 retains current qtype dependencies.
 - Teacher adds a separate native Practicum course activity, selects “IPv4 basics:
