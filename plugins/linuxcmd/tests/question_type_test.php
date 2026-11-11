@@ -20,16 +20,19 @@ final class question_type_test extends \advanced_testcase {
             'tasktype' => 'copytree', 'pathmode' => 'mixed',
         ];
         $type = \question_bank::get_qtype('linuxcmd');
-        $saved = $type->save_question((object)['qtype' => 'linuxcmd'], $form);
-        $loaded = \question_bank::load_question($saved->id);
-        $this->assertSame('copytree', $loaded->tasktype);
-        $this->assertSame('mixed', $loaded->pathmode);
-        $data = \question_bank::load_question_data($saved->id);
-        $format = new \qformat_xml();
-        $parsed = (new \core\xml_parser())->parse($format->writequestion($data));
-        $imported = $type->import_from_xml($parsed['question'], null, $format);
-        $this->assertSame('linuxcmd', $imported->qtype);
-        $this->assertSame('copytree', $imported->tasktype);
-        $this->assertSame('mixed', $imported->pathmode);
+        foreach (exercise::TYPES as $tasktype) {
+            $form->tasktype = $tasktype;
+            $saved = $type->save_question((object)['qtype' => 'linuxcmd'], $form);
+            $loaded = \question_bank::load_question($saved->id);
+            $this->assertSame($tasktype, $loaded->tasktype);
+            $this->assertSame('mixed', $loaded->pathmode);
+            $data = \question_bank::load_question_data($saved->id);
+            $format = new \qformat_xml();
+            $parsed = (new \core\xml_parser())->parse($format->writequestion($data));
+            $imported = $type->import_from_xml($parsed['question'], null, $format);
+            $this->assertSame('linuxcmd', $imported->qtype);
+            $this->assertSame($tasktype, $imported->tasktype);
+            $this->assertSame('mixed', $imported->pathmode);
+        }
     }
 }

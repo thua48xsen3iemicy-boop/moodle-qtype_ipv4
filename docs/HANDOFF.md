@@ -1,8 +1,9 @@
 # Handoff: Practicum foundation
 
-## Practicum 0.8.0: first learning topic (2026-11-10)
+## Practicum 0.10.0: first learning topic (2026-11-11)
 
-- Branch `feat/ipv4-order-learning-topic`, based on main merge d1f6a03.
+- Branch `feat/ipv4-order-learning-topic`, initially based on d1f6a03; integrated main 1fbbc7a before PR.
+  Module version 2026111100 / 0.10.0 retains current qtype dependencies.
 - Teacher adds a separate native Practicum course activity, selects “IPv4 basics:
   previous and next address” under Activity content, and chooses 1–50 questions
   per type (default 4, eight total). Existing training/exam modes remain available.
@@ -38,13 +39,124 @@
   activity edits. NOT RUN: Moodle 5.3 core/DB/PHPUnit absent. Required next: real
   module upgrade, form create/edit/switch, learner training/check/resume, exam,
   gradebook and course backup/restore on Moodle 5.3. No deployment/push/merge.
+- Pre-PR integration (2026-11-11): merged origin/main 1fbbc7a, preserved CIDR
+  requirements, multiselect blocks and Linux permissions, resolved documentation/
+  language append conflicts, assigned D022 and bumped module to 0.10.0/2026111100.
+  Revalidation: PHP 8.4.27 syntax on 80 files; isolated harness 75,531 assertions;
+  two packaging tests and mocked deployment scenarios passed. Native Moodle 5.3
+  integration remains unrun for the same missing-core/DB blocker above.
 - Scope: one mode per activity as before; no combined training/final-exam flow,
   automatic mastery completion/unlocking, editable theory or adaptive repeats.
+
+## Practicum 0.9.0 / Linuxcmd 0.3.0: Linux permissions (2026-11-10)
+
+- Published PR #18: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/18
+  Awaiting user merge; no user-server deployment.
+
+- Branch `feat/linux-permissions`, based on main 83f64f4 after PR #17 merged.
+  No user-server deployment or merge performed.
+- Separate permissions category with 17 stable linux_* types: owner, owner+group,
+  recursive owner, group, recursive group, numeric/symbolic chmod, set/remove SUID,
+  directory SGID, set/remove sticky, octal↔letters, file/directory r/w/x meaning,
+  special-bit meaning (including executable SGID). Files category stays 10 types.
+  Category selection/once/mixed blocks reuse the existing planner.
+- New pure-data permissions evaluator, version-2 frozen question snapshots and
+  v2 template keys for new types only. Literal command parsing/path traversal,
+  exact recursion/ownership and resulting mode checks; explicit notation for
+  numeric/symbolic tasks. Symbolic directory assignment preserves SUID/SGID as
+  GNU chmod does. No learner input is executed. ACLs and chattr/lsattr excluded.
+- RU/EN tasks/labels/help, short-response labels without irrelevant trees,
+  explanatory feedback, conversion including uppercase S/T. Existing version-1
+  file scenarios and template keys keep their grading. No schema migration.
+  qtype_linuxcmd 2026111003 / 0.3.0; mod_practicum 2026111008 / 0.9.0 requires it.
+- Actual validation: PHP 8.4.24 extracted from official Debian trixie packages.
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  75,491 assertions passed (Moodle stand-ins, NOT native PHPUnit/core/DB).
+  Includes all 27 Linux types × 5 path settings, roundtrip generation, frozen
+  state/regrading, notation/effect/path/flag rejection and permissions once plans.
+- `python work/verify-permissions.py`: all 4,096 octal masks match Python
+  stat.filemode, 288 symbolic transformations match GNU chmod on scratch regular
+  files/directories. This uses generated controlled fixtures, never learner input.
+  `work/check-permission-languages.php`: all task strings/placeholders pass RU/EN.
+- All 79 source PHP files pass syntax. Packaging tests: 2 passed; mock deployment
+  success/failure/unknown-type checks passed. git diff --check passed.
+- Native Moodle tests extended for all-type XML settings, mixed training/exam,
+  unchanged reload after settings changes, backup/restore of all Linux types.
+  NOT RUN: Moodle 5.3/core/DB/PHPUnit, native UI/upgrade; this environment has no
+  installed Moodle or DB/runtime container. These remain required before rollout.
+
+## Practicum 0.8.0: multiple types per advanced block (2026-11-10)
+
+- Published PR #17: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/17
+  Awaiting user merge; no user-server deployment.
+
+- Branch `feat/multiselect-question-blocks`, based on main 8ca9ced after PR #16.
+- Advanced blocktype is now a native multiple autocomplete. Count label and RU/EN
+  instructions clarify N per selected type (3 × 5 = 15), additional blocks for
+  other counts/prefixes. Prefixes remain visible with help explaining IPv4-only
+  use; the old hide rule was unsafe for mixed IPv4/file multiselects.
+- Legacy scalar form values remain accepted. Single-type rows retain old JSON;
+  multi-type rows use existing each planning with layout=block UI metadata.
+  Preprocessing restores grouped rows/counts/prefixes, and old single types become
+  one-item multiselects. Deduplicate within each row; independent rows can repeat
+  a type with different settings. Expanded total limit remains 100.
+- mod_practicum 2026111007 / 0.8.0. No DB/qtype/template changes; saved attempt
+  plans and conditions remain unchanged.
+- Isolated PHP 8.4.27 harness:
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  66,083 assertions passed with Moodle stand-ins. Covers per-type counts across
+  multiple rows, mixed families, prefix isolation, row deduplication, zero-count
+  deletion, limits, empty/unknown types, edit grouping and legacy form roundtrip,
+  plus existing IPv4/CIDR/path/state regressions.
+- PHP 8.4.27 syntax: all 77 source PHP files passed. Two packaging tests, mock
+  deployment success/failure/unknown-type checks and git diff --check passed.
+- Added a native lifecycle test for grouped mixed blocks, actual counts, grading
+  and unchanged resume after configuration edits. NOT RUN: Moodle 5.3/core/DB/
+  PHPUnit and native repeated autocomplete UI; this checkout lacks Moodle/DB.
+  Verified Moodle 5.3 source supports cloned autocomplete/select attributes in
+  repeat_elements; actual core/Boost rendering still needs integration checking.
+- No user-server deployment or PR merge performed.
+
+
+## IPv4 0.5.0 / Practicum 0.7.1: network CIDR answers (2026-11-10)
+
+- Published PR #16: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/16
+  Merged by user into main (8ca9ced); no user-server deployment.
+
+- Branch `feat/require-network-prefix`, based on main d1f6a03 after PR #15 merged.
+- New network-address attempts require address/prefix. Both parts are checked;
+  missing prefix is invalid format, wrong prefix/address grades 0. Dotted-mask
+  suffixes remain unsupported. Native quiz radio choices include the prefix too.
+  Other exercise formats and the 12-type subnet category remain unchanged.
+- New snapshots store networkformat=cidr inside _ipv4. Old snapshots without it
+  retain old answers/choices/conditions and grading after restore/regrade. New
+  task/validation RU/EN strings explain the format. Low-level IPv4 parsing and
+  calculation APIs remain unchanged; response normalizer takes an optional flag.
+- Network Practicum templates now use v4 keys with networkformat=cidr, preserving
+  old questions and other template keys. qtype_ipv4 2026111001 / 0.5.0;
+  mod_practicum 2026111006 / 0.7.1 requires it. No DB schema changes.
+- PHP 8.4.27 syntax: all 77 source PHP files passed. Expanded standalone harness
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/root/usr/lib/x86_64-linux-gnu" work/php-runtime/root/usr/bin/php8.4 -n tools/check-linuxcmd.php`:
+  66,045 assertions passed. Added DB-independent root IPv4 exercise/question
+  suites to the existing stand-in harness; actual core/DB suites are not run.
+  Coverage includes all /1–/30, text/choice, correct/wrong/missing prefixes,
+  malformed notation, generated choices, legacy snapshots and template isolation.
+- Chromium 156 / Python Playwright:
+  `python -u work/network-cidr/check-browser.py` passed at 1440/390 px. Fixture
+  loads real question.php and renderer.php with Moodle stand-ins. RU task/error
+  text, correct address/prefix, wrong prefix/address, missing prefix, dotted-mask
+  rejection and legacy bare-address acceptance verified. Screenshots in ignored
+  work/network-cidr/. This is NOT a real Moodle browser integration test.
+- Two packaging tests and mock deployment success/failure/unknown-type checks
+  passed; git diff --check passed. Native Moodle 5.3/DB/PHPUnit, actual upgrade,
+  full regrade/backup and Boost UI remain unrun: no Moodle install/database here.
+  No user-server deployment or merge performed.
+
 
 ## Practicum 0.7.0: one question per selected type (2026-11-10)
 
 - Published PR #15: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/15
-  Awaiting user merge; no user-server deployment.
+  Merged by user into main (d1f6a03); no user-server deployment.
 
 - Branch `feat/one-question-per-type`, based on main d3f5837 after PR #14 merged.
 - Added explicit once selection mode (“One question per type, no repeats”).

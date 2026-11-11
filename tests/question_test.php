@@ -62,6 +62,56 @@ final class question_test extends \advanced_testcase {
         $this->assertSame(['answer' => '10.37.0.0'], $question->get_correct_response());
     }
 
+    public function test_new_network_questions_require_the_correct_prefix_in_both_modes(): void {
+        foreach (\qtype_ipv4\network::PREFIXES as $prefix) {
+            foreach (['text', 'choice'] as $mode) {
+                $question = new \qtype_ipv4_question();
+                $question->prefixes = (string)$prefix;
+                $question->answermode = $mode;
+                $step = new \question_attempt_step();
+                $question->start_attempt($step, 1);
+                $correct = \qtype_ipv4\network::address($question->ip, $prefix) . '/' . $prefix;
+                $this->assertSame('cidr', $question->exercise['networkformat']);
+                $this->assertSame(['answer' => $correct], $question->get_correct_response());
+                $this->assertSame(1.0, $question->grade_response(['answer' => $correct])[0]);
+                $bare = explode('/', $correct)[0];
+                $this->assertFalse($question->is_complete_response(['answer' => $bare]));
+                $this->assertSame(0.0, $question->grade_response(['answer' => $bare])[0]);
+                $wrongprefix = $prefix === 30 ? 29 : $prefix + 1;
+                $this->assertSame(0.0, $question->grade_response(['answer' => $bare . '/' . $wrongprefix])[0]);
+                $this->assertSame(0.0, $question->grade_response([
+                    'answer' => \qtype_ipv4\network::offset($bare, 1) . '/' . $prefix,
+                ])[0]);
+                foreach ($question->choices as $choice) {
+                    $this->assertTrue(str_ends_with($choice, '/' . $prefix));
+                }
+                $this->assertStringNotContainsString('[[', $question->task_text());
+                $this->assertStringNotContainsString('[[', $question->get_validation_error(['answer' => $bare]));
+                $restored = new \qtype_ipv4_question();
+                $restored->apply_attempt_state($step);
+                $this->assertSame($question->exercise, $restored->exercise);
+                $this->assertSame(1.0, $restored->grade_response(['answer' => $correct])[0]);
+                $this->assertSame(0.0, $restored->grade_response(['answer' => $bare])[0]);
+            }
+        }
+    }
+
+    public function test_legacy_network_attempts_keep_their_original_bare_address_contract(): void {
+        foreach (['text', 'choice'] as $mode) {
+            $snapshot = ['type' => 'network', 'ip' => '10.37.19.214', 'prefix' => 16, 'mode' => $mode,
+                'choices' => ['10.37.0.0', '10.38.0.0', '10.37.0.1', '10.37.255.255']];
+            $step = new \question_attempt_step();
+            $step->set_qt_var('_ipv4', json_encode($snapshot));
+            $question = new \qtype_ipv4_question();
+            $question->apply_attempt_state($step);
+            $this->assertSame($snapshot, $question->exercise);
+            $this->assertSame(['answer' => '10.37.0.0'], $question->get_correct_response());
+            $this->assertSame(1.0, $question->grade_response(['answer' => '10.37.0.0'])[0]);
+            $this->assertSame(0.0, $question->grade_response(['answer' => '10.37.0.0/16'])[0]);
+            $this->assertSame(get_string('task_network', 'qtype_ipv4', (object)$snapshot), $question->task_text());
+        }
+    }
+
     public function test_database_reload_continue_finish_review_and_regrade(): void {
         $this->resetAfterTest();
         $this->setAdminUser();

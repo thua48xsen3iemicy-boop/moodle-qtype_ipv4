@@ -5,8 +5,9 @@ defined('MOODLE_INTERNAL') || die();
 
 /** Generates self-contained, versioned command exercises. Never executes shell input. */
 final class exercise {
-    public const TYPES = ['mkdir', 'mkdirparents', 'touch', 'copyfile', 'copytree',
+    public const FILE_TYPES = ['mkdir', 'mkdirparents', 'touch', 'copyfile', 'copytree',
         'rename', 'move', 'rmdir', 'removefile', 'removetree'];
+    public const TYPES = [...self::FILE_TYPES, ...permissions::TYPES];
     public const MODES = ['absolute', 'relative', 'mixed', 'reverse', 'random'];
 
     public static function validate(string $type, string $mode): void {
@@ -25,6 +26,7 @@ final class exercise {
 
     public static function generate(string $type, string $mode): array {
         self::validate($type, $mode);
+        if (in_array($type, permissions::TYPES, true)) { return permissions::generate($type, $mode); }
         $n = random_int(10, 9999);
         $root = '/srv/practice/team' . $n;
         $cwd = $root . ['/work/drafts', '/documents', '/downloads'][random_int(0, 2)];
@@ -67,7 +69,7 @@ final class exercise {
         return $data;
     }
 
-    private static function operand(string $path, string $cwd, string $mode): string {
+    public static function operand(string $path, string $cwd, string $mode): string {
         if ($mode === 'absolute') {
             return $path;
         }
@@ -144,6 +146,7 @@ final class exercise {
 
     /** Check the operation, literal paths, path styles and allowed option semantics. */
     public static function correct(string $answer, array $data): bool {
+        if (($data['version'] ?? 1) === 2) { return permissions::correct($answer, $data); }
         $words = self::words(trim($answer));
         if (!$words || array_shift($words) !== $data['command']) { return false; }
         $flags = [];
@@ -202,7 +205,7 @@ final class exercise {
         return true;
     }
 
-    private static function traversable(string $path, string $cwd, array $data): bool {
+    public static function traversable(string $path, string $cwd, array $data): bool {
         $parts = explode('/', str_starts_with($path, '/') ? $path : $cwd . '/' . $path);
         $current = '/';
         $dirs = $data['dirs'];
@@ -231,6 +234,7 @@ final class exercise {
     }
 
     public static function text(array $data): string {
+        if (($data['version'] ?? 1) === 2) { return permissions::text($data); }
         $a = (object)$data;
         $text = get_string('scenario', 'qtype_linuxcmd', $a) . "\n\n" .
             get_string('task_' . $data['type'], 'qtype_linuxcmd', $a) . "\n\n";

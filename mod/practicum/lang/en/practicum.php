@@ -45,7 +45,7 @@ $string['privacy:metadata'] = 'Stores ownership, generated plans, answers, attem
 $string['grade'] = 'Grade';
 
 $string['ipv4task'] = 'IPv4: {$a}';
-$string['explanation_network'] = 'Apply the subnet mask to the IPv4 address: all host bits become zero.';
+$string['explanation_network'] = 'Apply the subnet mask to the IPv4 address: all host bits become zero. Include the prefix in address/prefix notation.';
 $string['explanation_broadcast'] = 'Set all host bits in the network address to one.';
 $string['explanation_firsthost'] = 'The first host address is the network address plus one.';
 $string['explanation_lasthost'] = 'The last host address is the broadcast address minus one.';
@@ -104,3 +104,11 @@ $string['theory_ipv4_order_v1'] = <<<'HTML'
 <p>What follows <code>172.16.255.255</code>? What precedes <code>172.17.0.0</code>?</p>
 <details><summary>Show explanation</summary><p>The next address is <code>172.17.0.0</code>: both trailing 255 octets become 0, and 16 becomes 17. The previous address is <code>172.16.255.255</code>: borrow from 17, turning both zero octets into 255. These operations undo each other.</p></details>
 HTML;
+
+$string['blockcount'] = 'Questions per type (0 — remove block)';
+$string['blockprefix'] = 'Block prefixes';
+$string['blockprefix_help'] = 'Prefixes apply to selected IPv4 exercises in this block. File and path operations ignore them. Both families can be combined in one block.';
+$string['selectionadvancedhint'] = 'Select multiple types in each task selector. The count applies to each selected type: for example, 3 types with 5 questions each produce 15 questions. Add another block for different counts or prefixes. Maximum 100 questions in total.';
+
+$string['permissions'] = 'Linux permissions';
+$string['permissiontask'] = 'Linux permissions: {$a}';

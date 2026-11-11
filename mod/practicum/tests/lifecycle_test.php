@@ -128,6 +128,42 @@ final class lifecycle_test extends \advanced_testcase {
         $this->assertCount(count(local\registry::groups()['subnet']), json_decode($next->plan, true));
     }
 
+    public function test_multiselect_blocks_resume_and_grade_with_per_type_counts(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $g = $this->getDataGenerator();
+        $course = $g->create_course();
+        $p = $g->create_module('practicum', [
+            'course' => $course->id, 'mode' => 'training', 'selectionmode' => 'advanced',
+            'blocktype' => [['ipv4_network', 'linux_move'], ['ipv4_hostcount']],
+            'blockcount' => [2, 3], 'blockprefix' => [[26], [24]],
+        ]);
+        $student = $g->create_user();
+        $g->enrol_user($student->id, $course->id, 'student');
+        $this->setUser($student);
+        $context = \context_module::instance($p->cmid);
+        $attempt = local\attempts::start($p, $context, $student->id);
+        $plan = json_decode($attempt->plan, true);
+        $counts = array_count_values(array_column($plan, 'type'));
+        $this->assertSame(2, $counts['ipv4_network']);
+        $this->assertSame(2, $counts['linux_move']);
+        $this->assertSame(3, $counts['ipv4_hostcount']);
+        $p->blocks = local\blueprint::from_form((object)[
+            'blocktype' => [['linux_touch', 'linux_mkdir']], 'blockcount' => [1],
+        ]);
+        $DB->set_field('practicum', 'blocks', $p->blocks, ['id' => $p->id]);
+        $resumed = local\attempts::start($p, $context, $student->id);
+        $this->assertEquals($attempt->id, $resumed->id);
+        $this->assertSame($attempt->plan, $resumed->plan);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        foreach ($usage->get_slots() as $slot) {
+            $usage->process_action($slot, $usage->get_question($slot)->get_correct_response() + ['-submit' => 1]);
+        }
+        \question_engine::save_questions_usage_by_activity($usage);
+        $this->assertEquals(100, local\attempts::process($attempt->id, null, true)->grade);
+    }
+
     public function test_training_is_untimed_and_does_not_gradebook(): void {
         global $DB;
         [$p,$u,$c]=$this->setup_activity('training');

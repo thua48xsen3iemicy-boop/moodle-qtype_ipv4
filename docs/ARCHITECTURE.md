@@ -7,7 +7,8 @@ contains a stable type id, schema version and settings snapshot. No quota balanc
 adapter contract. `ipv4_task` bridges every supported qtype IPv4 exercise to the activity; the
 `ipv4_network` wrapper preserves the original class and stable plan id. Template
 keys v2 include exercise type and prefixes. Boolean choice templates use v3
-identities including answer mode; other tasks keep v2. Existing templates are
+identities including answer mode; network-address CIDR templates use v4 identities
+including networkformat=cidr; other tasks keep v2. Existing templates are
 never mutated. Boolean tasks use Yes/No radio buttons; other tasks use text.
 
 Moodle question usages store generated condition, answer order, responses and
@@ -85,6 +86,43 @@ unique selected type; validation rejects any other persisted count for this mode
 The form hides count entry and ignores stale sharedcount when saving once.
 Category labels show live catalog counts, while saved type snapshots remain fixed.
 The existing each/random modes and version-1 slot shape are unchanged.
+
+## Network answer format
+
+New `network` generation stores `networkformat: cidr` in `_ipv4`. Canonical answers
+and all radio choices include /prefix; normalization uses the saved format marker
+and grading compares the full address/prefix. Bare addresses fail format validation;
+a well-formed wrong prefix is incorrect. Task/error strings explain the format.
+Legacy snapshots without the marker retain bare-address answers/choices and their
+old task text on restore/regrade. Low-level network calculations remain bare IPv4;
+other exercise formats are unchanged. Practicum network templates use v4 identities
+so the new feedback is saved separately from immutable older templates.
+
+## Multiselect blocks
+
+Advanced blocktype controls submit arrays per repeated row; legacy scalar posts
+are still accepted. One-type rows save the original concrete type/count/settings
+shape. Multi-type rows save selection=each, layout=block, types/count/prefixes/
+pathmode, reusing existing validation and planning. layout only controls form
+preprocessing, keeping the row groups/counts on edit. The union within each row is
+unique; different rows may intentionally repeat a type with other counts/prefixes.
+Prefix controls stay visible for mixed selections, and file operations ignore them.
+Existing version-1 attempt plans, templates and saved attempts are unchanged.
+
+## Linux permission questions
+
+qtype_linuxcmd exercise::TYPES is the union of FILE_TYPES and permissions::TYPES.
+Only version-2 snapshots dispatch to permissions; version-1 code is preserved.
+The existing persisted tasktype/pathmode fields, question-engine state, import,
+backup and adapters are reused. No schema change. permissions snapshots include
+initial/goal modes, owner/group targets, response kind and canonical answer.
+Evaluation parses literal command words and checks paths, options, recursion and
+resulting bits. chmodnumeric and chmodsymbolic enforce the requested notation;
+conversion requires exact nine-character letters or 3–4 octal digits. Theory uses
+specified short tokens. The renderer uses a generic answer label and omits the
+filesystem tree for non-command tasks. All answers remain native text responses.
+The permissions category and labels use the same registered type list. Existing
+saved pools are concrete snapshots and do not grow during attempts.
 
 ## Ready-made learning topics
 

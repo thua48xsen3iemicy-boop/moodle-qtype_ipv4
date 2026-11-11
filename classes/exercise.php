@@ -62,6 +62,9 @@ final class exercise {
         }
         $data = network::generate($prefixes);
         $data['type'] = $type;
+        if ($type === 'network') {
+            $data['networkformat'] = 'cidr';
+        }
         if (in_array($type, ['nextip', 'previousip'], true) && random_int(0, 1)) {
             $octets = explode('.', $data['ip']);
             $octets[3] = $type === 'nextip' ? '255' : '0';
@@ -99,7 +102,7 @@ final class exercise {
         if (in_array($type, ['samesubnet', 'assignable'], true)) {
             $choices = ['yes', 'no'];
         } else if ($type === 'network') {
-            $choices = network::choices($ip, $prefix);
+            $choices = array_map(fn($address) => $address . '/' . $prefix, network::choices($ip, $prefix));
         } else if ($type === 'hostcount') {
             $size = 2 ** (32 - $prefix);
             $choices = [(string)($size - 2), (string)$size, (string)($size - 1), (string)($size + 2)];
@@ -146,7 +149,7 @@ final class exercise {
         $base = network::address($ip, $prefix);
         $broadcast = network::broadcast($ip, $prefix);
         switch ($data['type'] ?? 'network') {
-            case 'network': return $base;
+            case 'network': return $base . (self::network_requires_prefix($data) ? '/' . $prefix : '');
             case 'broadcast': return $broadcast;
             case 'firsthost': return network::offset($base, 1);
             case 'lasthost': return network::offset($broadcast, -1);
@@ -165,7 +168,12 @@ final class exercise {
         throw new \InvalidArgumentException('Unknown exercise type');
     }
 
-    public static function normalise(string $value, string $type): ?string {
+    /** Old saved network scenarios without this marker keep their original answer contract. */
+    public static function network_requires_prefix(array $data): bool {
+        return ($data['type'] ?? 'network') === 'network' && ($data['networkformat'] ?? '') === 'cidr';
+    }
+
+    public static function normalise(string $value, string $type, bool $networkprefixrequired = false): ?string {
         $value = trim($value);
         if (in_array($type, self::COMMAND_TYPES, true)) {
             return $value === '' ? null : $value;
@@ -181,7 +189,7 @@ final class exercise {
         if ($type === 'maskprefix') {
             return preg_match('~^/?([1-9]|[12][0-9]|30)$~D', $value, $match) ? '/' . $match[1] : null;
         }
-        if ($type === 'nextsubnet') {
+        if ($type === 'nextsubnet' || ($type === 'network' && $networkprefixrequired)) {
             $parts = explode('/', $value);
             return count($parts) === 2 && network::normalise($parts[0]) !== null &&
                 preg_match('/^([1-9]|[12][0-9]|30)$/D', $parts[1]) ? $value : null;

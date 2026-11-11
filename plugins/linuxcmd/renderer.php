@@ -11,10 +11,13 @@ class qtype_linuxcmd_renderer extends qtype_renderer {
         foreach (explode("\n\n", $question->task_text()) as $paragraph) {
             $html .= html_writer::tag('p', nl2br(s($paragraph)));
         }
-        $html .= html_writer::tag('details', html_writer::tag('summary', get_string('structure', 'qtype_linuxcmd')) .
+        $iscommand = ($question->exercise['answerkind'] ?? 'command') === 'command';
+        if ($iscommand) {
+            $html .= html_writer::tag('details', html_writer::tag('summary', get_string('structure', 'qtype_linuxcmd')) .
             html_writer::tag('pre', s(implode("\n", array_merge(
                 array_map(fn($p) => $p . '/', $question->exercise['dirs']), $question->exercise['files'])))));
-        $html .= html_writer::tag('label', get_string('enteranswer', 'qtype_linuxcmd'), ['for' => $name]);
+        }
+        $html .= html_writer::tag('label', get_string($iscommand ? 'enteranswer' : 'answerlabel', 'qtype_linuxcmd'), ['for' => $name]);
         $attrs = ['type' => 'text', 'name' => $name, 'id' => $name, 'value' => $current ?? '',
             'class' => 'form-control font-monospace', 'size' => 80, 'maxlength' => 4096,
             'autocomplete' => 'off', 'spellcheck' => 'false'];

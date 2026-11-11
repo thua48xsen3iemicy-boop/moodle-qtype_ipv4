@@ -30,6 +30,8 @@ class basic_testcase {
     public function assertSame($expected, $actual) { $this->check($expected === $actual, var_export([$expected, $actual], true)); }
     public function assertNotSame($expected, $actual) { $this->check($expected !== $actual); }
     public function assertCount($expected, $actual) { $this->check(count($actual) === $expected); }
+    public function assertContains($needle, $haystack) { $this->check(in_array($needle, $haystack, true)); }
+    public function assertNotEmpty($value) { $this->check(!empty($value)); }
     public function assertInstanceOf($expected, $actual) { $this->check($actual instanceof $expected); }
     public function assertStringNotContainsString($needle, $haystack) { $this->check(!str_contains($haystack, $needle), $haystack); }
 }
@@ -68,7 +70,7 @@ try {
     mkdir($fixture . '/question/type/linuxcmd');
     file_put_contents($fixture . '/question/type/linuxcmd/question.php', '<?php');
     $CFG->dirroot = $fixture;
-    foreach (['exercise', 'question'] as $suite) {
+    foreach (['exercise', 'permissions', 'question'] as $suite) {
         require($root . '/plugins/linuxcmd/tests/' . $suite . '_test.php');
         $class = '\\qtype_linuxcmd\\' . $suite . '_test';
         $test = new $class();
@@ -97,6 +99,30 @@ try {
     foreach (get_class_methods($formtest) as $method) {
         if (str_starts_with($method, 'test_')) { $formtest->$method(); echo "form::$method OK\n"; }
     }
+    // Run DB-independent IPv4 generation/grading tests against the same stand-ins.
+    require($root . '/question.php');
+    mkdir($fixture . '/question/engine/tests', 0700, true);
+    mkdir($fixture . '/question/type/ipv4');
+    foreach (['/question/engine/lib.php', '/question/engine/tests/helpers.php',
+            '/question/type/ipv4/question.php'] as $file) {
+        file_put_contents($fixture . $file, '<?php');
+    }
+    foreach (['exercise', 'question'] as $suite) {
+        require($root . '/tests/' . $suite . '_test.php');
+        $class = '\\qtype_ipv4\\' . $suite . '_test';
+        foreach (get_class_methods($class) as $method) {
+            if (!str_starts_with($method, 'test_') || str_contains($method, 'database')) { continue; }
+            $test = new $class();
+            try {
+                $test->$method();
+                if ($test->expectedexception) { throw new Exception('Expected exception was not thrown'); }
+            } catch (Throwable $error) {
+                if (!$test->expectedexception || !is_a($error, $test->expectedexception)) { throw $error; }
+                $test->assertTrue(true);
+            }
+            echo "ipv4::$suite::$method OK\n";
+        }
+    }
     $check = new basic_testcase();
     $blocks = json_decode(\mod_practicum\local\blueprint::from_form((object)[
         'blocktype' => ['linux_copytree', 'ipv4_network'], 'blockcount' => [2, 1],
@@ -118,6 +144,13 @@ try {
     } catch (invalid_parameter_exception $expected) { $check->assertTrue(true); }
     echo basic_testcase::$assertions . " assertions passed (isolated; Moodle core/DB not loaded).\n";
 } finally {
+    foreach (['/question/engine/lib.php', '/question/engine/tests/helpers.php',
+            '/question/type/ipv4/question.php'] as $file) {
+        if (is_file($fixture . $file)) { unlink($fixture . $file); }
+    }
+    foreach (['/question/engine/tests', '/question/engine', '/question/type/ipv4'] as $dir) {
+        if (is_dir($fixture . $dir)) { rmdir($fixture . $dir); }
+    }
     if (is_file($fixture . '/course/moodleform_mod.php')) {
         unlink($fixture . '/course/moodleform_mod.php');
         rmdir($fixture . '/course');

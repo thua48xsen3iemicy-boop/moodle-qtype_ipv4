@@ -1,12 +1,12 @@
 <?php
 // Moodle plugin, GPL v3 or later.
-$string['pluginname'] = 'File and path operations';
-$string['pluginname_help'] = 'Generates single-command Linux exercises. Checks operations and paths without executing commands.';
-$string['pluginnameadding'] = 'Adding a file and path exercise';
-$string['pluginnameediting'] = 'Editing a file and path exercise';
-$string['pluginnamesummary'] = 'Create, copy, move and remove files and directories using the required path styles.';
+$string['pluginname'] = 'Linux files, paths and permissions';
+$string['pluginname_help'] = 'Generates Linux file, path and permission exercises. Checks answers without executing commands.';
+$string['pluginnameadding'] = 'Adding a Linux file or permission exercise';
+$string['pluginnameediting'] = 'Editing a Linux file or permission exercise';
+$string['pluginnamesummary'] = 'File operations, ownership, permission modes, SUID, SGID and sticky bit.';
 $string['privacy:metadata'] = 'This question type stores settings only. Moodle core owns responses and attempt state.';
-$string['tasktype'] = 'File operation';
+$string['tasktype'] = 'Linux exercise';
 $string['pathmode'] = 'Path style';
 $string['pathmode_help'] = 'Random mode chooses each path independently: relative with probability 2/3, absolute 1/3. Both mixed combinations are available. Absolute: all paths start at /. Relative: all paths start at the working directory. Mixed: relative source and absolute destination; single-operand exercises use a relative path.';
 $string['mode_absolute'] = 'Absolute paths';
@@ -45,3 +45,55 @@ $string['task_removetree'] = 'Remove directory {$a->source} and all its contents
 $string['mode_random'] = 'Random, favouring relative paths';
 $string['mode_reverse'] = 'Absolute source, relative destination';
 $string['rule_reverse'] = 'Use an absolute source path and a destination path relative to the working directory.';
+
+// Linux permissions; ACLs are a separate module.
+$string['type_chown'] = 'Change file owner';
+$string['type_chownboth'] = 'Change owner and group';
+$string['type_chownrecursive'] = 'Change owner recursively';
+$string['type_chgrp'] = 'Change file group';
+$string['type_chgrprecursive'] = 'Change group recursively';
+$string['type_chmodnumeric'] = 'chmod: octal mode';
+$string['type_chmodsymbolic'] = 'chmod: symbolic mode';
+$string['type_suid'] = 'Set SUID';
+$string['type_nosuid'] = 'Remove SUID';
+$string['type_sgid'] = 'Set directory SGID';
+$string['type_sticky'] = 'Set sticky bit';
+$string['type_nosticky'] = 'Remove sticky bit';
+$string['type_modeletters'] = 'Convert octal to letters';
+$string['type_modeoctal'] = 'Convert letters to octal';
+$string['type_fileaccess'] = 'File permissions: r, w, x';
+$string['type_diraccess'] = 'Directory permissions: r, w, x';
+$string['type_specialmeaning'] = 'Meaning of SUID, SGID and sticky bit';
+$string['permission_intro'] = 'Current directory: {$a->cwd}. Object: {$a->source}. Initial owner: {$a->oldowner}; group: {$a->oldgroup}; mode: {$a->initialoctal} ({$a->initialletters}). Ancestors exist; no symbolic links or ACLs. Assume sufficient privileges. Each exercise is independent.';
+$string['permission_command'] = 'Enter one command without sudo, shell expansions or chaining. Keep other objects and unspecified properties unchanged. Supported: literal paths, quotes, --, -R/--recursive for ownership tasks; chmod octal modes or symbolic clauses with explicit u/g/o/a, +,-,= and r,w,x,s,t. For directory special bits use symbolic mode. No X or permission copying.';
+$string['answerlabel'] = 'Answer';
+$string['permissionanswer'] = 'Enter an answer';
+$string['permissionfeedback'] = 'Check owner/group, r=4, w=2, x=1 and special bits SUID=4, SGID=2, sticky=1 in the leading octal digit. Lowercase s/t includes execute; uppercase S/T means execute is absent. Directory r lists names, w changes entries (with x), x permits traversal. ACLs are covered separately.';
+$string['task_chown'] = 'Using chown, set the file owner to {$a->owner}; retain its group.';
+$string['task_chownboth'] = 'Using chown, set owner {$a->owner} and group {$a->group}.';
+$string['task_chownrecursive'] = 'Using chown, set owner {$a->owner} for this directory and every descendant, retaining their groups.';
+$string['task_chgrp'] = 'Using chgrp, set file group {$a->group}, retaining its owner.';
+$string['task_chgrprecursive'] = 'Using chgrp, set group {$a->group} for this directory and every descendant, retaining their owners.';
+$string['task_chmodnumeric'] = 'Using chmod with an octal mode operand, set exactly these permissions: {$a->letters}.';
+$string['task_chmodsymbolic'] = 'Using chmod with a symbolic mode operand, set exactly {$a->octal} ({$a->letters}).';
+$string['task_suid'] = 'Set SUID on this executable regular file, preserving all other mode bits.';
+$string['task_nosuid'] = 'Remove SUID from this regular file, preserving all other mode bits.';
+$string['task_sgid'] = 'Set SGID on this directory so new entries inherit its group. Preserve other mode bits.';
+$string['task_sticky'] = 'Set the sticky bit on this shared directory; retain all other mode bits.';
+$string['task_nosticky'] = 'Remove the sticky bit from this directory; retain all other mode bits.';
+$string['task_modeletters'] = 'Write octal mode {$a->octal} as exactly nine permission characters, without a file-type prefix. Include s/S/t/T where needed.';
+$string['task_modeoctal'] = 'Write {$a->letters} as octal permission digits, including the special-bit digit (leading zero may be omitted).';
+$string['task_fileaccess'] = 'Answer with one permission letter: r, w or x. Which file permission allows the following operation?';
+$string['task_diraccess'] = 'Answer with one permission letter: r, w or x. Which directory permission corresponds to the following operation? Other required permissions are granted.';
+$string['fileaccess_r'] = 'Read file contents.';
+$string['fileaccess_w'] = 'Modify file contents (not deletion of its directory entry).';
+$string['fileaccess_x'] = 'Execute the file as a program.';
+$string['diraccess_r'] = 'List names of directory entries.';
+$string['diraccess_w'] = 'Create or remove directory entries, assuming traversal is allowed and sticky-bit restrictions do not apply.';
+$string['diraccess_x'] = 'Traverse the directory and access an entry by a known name.';
+$string['task_specialmeaning'] = 'Answer with the bit name: suid, sgid or sticky.';
+$string['meaning_suid'] = 'On an executable regular binary file, execution normally sets the effective user ID to the file owner (assuming the system honours this bit).';
+$string['meaning_sgid'] = 'On a directory, new entries inherit its group; new subdirectories also inherit this bit.';
+$string['meaning_sticky'] = 'In a writable directory, deleting or renaming entries is restricted to the file owner, directory owner or a privileged process; it does not prevent editing file contents.';
+
+$string['meaning_sgidbinary'] = 'On an executable regular binary file, execution normally sets the effective group ID to the file group (assuming the system honours this bit).';

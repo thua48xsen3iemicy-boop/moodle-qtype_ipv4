@@ -84,3 +84,14 @@ attempt restoration. These use Moodle stand-ins and are not DB integration.
 The mixed-activity real-Moodle test now expects two radio choices for boolean
 tasks, tests both yes/no grades and empty response validation. This test and
 browser verification remain unrun: no Moodle core/DB in this checkout.
+
+## Linux permissions — 2026-11-10
+
+PHP 8.4.24, `tools/check-linuxcmd.php`: 75,491 stand-in assertions passed;
+79 PHP syntax checks passed. 4,096 mode strings independently compared with
+Python stat.filemode, 288 transformations compared with GNU chmod on controlled
+scratch fixtures (`python work/verify-permissions.py`). RU/EN placeholders pass
+`work/check-permission-languages.php`. Packaging unit tests and mocked deploy
+checks pass. No commands from learners are ever executed by the plugins.
+Native Moodle 5.3 PHPUnit/lifecycle/backup/XML/upgrade/UI checks remain UNRUN:
+Moodle core, database and runtime container are not installed in this environment.

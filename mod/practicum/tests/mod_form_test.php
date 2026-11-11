@@ -52,6 +52,34 @@ final class mod_form_test extends \basic_testcase {
         $this->assertSame($saved, local\blueprint::from_form((object)$defaults));
     }
 
+    public function test_multiselect_rows_keep_their_grouping_counts_and_prefixes_on_edit(): void {
+        $saved = local\blueprint::from_form((object)[
+            'blocktype' => [['ipv4_network', 'linux_move'], ['ipv4_hostcount', 'ipv4_broadcast'], ['linux_touch']],
+            'blockcount' => [2, 5, 3], 'blockprefix' => [[26], [16], []],
+        ]);
+        $defaults = ['blocks' => $saved];
+        $form = (new \ReflectionClass(\mod_practicum_mod_form::class))->newInstanceWithoutConstructor();
+        $form->data_preprocessing($defaults);
+        $this->assertSame('advanced', $defaults['selectionmode']);
+        $this->assertSame([['ipv4_network', 'linux_move'], ['ipv4_hostcount', 'ipv4_broadcast'], ['linux_touch']],
+            $defaults['blocktype']);
+        $this->assertSame([2, 5, 3], $defaults['blockcount']);
+        $this->assertSame([26], $defaults['blockprefix'][0]);
+        $this->assertSame([16], $defaults['blockprefix'][1]);
+        $this->assertSame($saved, local\blueprint::from_form((object)$defaults));
+    }
+
+    public function test_legacy_single_type_blocks_reopen_as_single_multiselect_items(): void {
+        $saved = local\blueprint::from_form((object)[
+            'blocktype' => ['ipv4_network', 'linux_move'], 'blockcount' => [2, 3], 'blockprefix' => [[26], []],
+        ]);
+        $defaults = ['blocks' => $saved];
+        $form = (new \ReflectionClass(\mod_practicum_mod_form::class))->newInstanceWithoutConstructor();
+        $form->data_preprocessing($defaults);
+        $this->assertSame([['ipv4_network'], ['linux_move']], $defaults['blocktype']);
+        $this->assertSame($saved, local\blueprint::from_form((object)$defaults));
+    }
+
     public function test_old_selections_and_advanced_blocks_remain_editable(): void {
         $form = (new \ReflectionClass(\mod_practicum_mod_form::class))->newInstanceWithoutConstructor();
         $saved = local\blueprint::from_form((object)[
@@ -66,7 +94,7 @@ final class mod_form_test extends \basic_testcase {
         $defaults = ['blocks' => json_encode([['type' => 'linux_move', 'count' => 3, 'pathmode' => 'relative']])];
         $form->data_preprocessing($defaults);
         $this->assertSame('advanced', $defaults['selectionmode']);
-        $this->assertSame(['linux_move'], $defaults['blocktype']);
+        $this->assertSame([['linux_move']], $defaults['blocktype']);
         $this->assertSame([3], $defaults['blockcount']);
     }
 }

@@ -29,7 +29,10 @@ class ipv4_task implements task_type {
         $this->validate($settings);
         $identity = ['type' => $this->type, 'prefixes' => $settings['prefixes']];
         $version = 'v2';
-        if ($this->answer_mode() === 'choice') {
+        if ($this->type === 'network') {
+            $version = 'v4';
+            $identity['networkformat'] = 'cidr';
+        } else if ($this->answer_mode() === 'choice') {
             // New templates only: do not edit old text questions used by existing attempts.
             $version = 'v3';
             $identity['answermode'] = 'choice';

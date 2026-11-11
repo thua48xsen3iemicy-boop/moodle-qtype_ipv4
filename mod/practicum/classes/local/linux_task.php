@@ -11,14 +11,16 @@ final class linux_task implements task_type {
         $this->type = $type;
     }
     public function label(): string {
-        return get_string('linuxtask', 'practicum', get_string('type_' . $this->type, 'qtype_linuxcmd'));
+        return get_string(in_array($this->type, \qtype_linuxcmd\permissions::TYPES, true) ?
+            'permissiontask' : 'linuxtask', 'practicum', get_string('type_' . $this->type, 'qtype_linuxcmd'));
     }
     public function validate(array $settings): void {
         \qtype_linuxcmd\exercise::validate($this->type, $settings['pathmode'] ?? 'relative');
     }
     public function template_key(array $settings): string {
         $this->validate($settings);
-        return 'practicum_linuxcmd_v1_' . sha1(json_encode([
+        return (in_array($this->type, \qtype_linuxcmd\permissions::TYPES, true) ?
+            'practicum_linuxcmd_v2_' : 'practicum_linuxcmd_v1_') . sha1(json_encode([
             'type' => $this->type, 'pathmode' => $settings['pathmode'] ?? 'relative',
         ], JSON_THROW_ON_ERROR));
     }
@@ -38,7 +40,8 @@ final class linux_task implements task_type {
             $form = (object)[
                 'idnumber' => $key, 'category' => $category->id . ',' . $contextid, 'name' => $this->label(),
                 'questiontext' => ['text' => $this->label(), 'format' => FORMAT_PLAIN],
-                'generalfeedback' => ['text' => get_string('linuxfeedback', 'practicum'), 'format' => FORMAT_PLAIN],
+                'generalfeedback' => ['text' => (in_array($this->type, \qtype_linuxcmd\permissions::TYPES, true) ?
+                    get_string('permissionfeedback', 'qtype_linuxcmd') : get_string('linuxfeedback', 'practicum')), 'format' => FORMAT_PLAIN],
                 'defaultmark' => 1, 'penalty' => 0, 'status' => 'ready', 'tasktype' => $this->type,
                 'pathmode' => $settings['pathmode'] ?? 'relative',
             ];
