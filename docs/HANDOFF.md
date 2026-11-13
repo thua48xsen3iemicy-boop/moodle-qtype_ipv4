@@ -2,6 +2,9 @@
 
 ## Practicum 0.11.1: PR integration with timed training (2026-11-13)
 
+- Published PR #21: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/21
+  Open for review; no PR merge or user-server deployment performed.
+
 - Integrated origin/main c0ba17a (merged PR #20) into
   feat/practicum-participant-results before opening the combined PR. Keep its
   optional training time limit, duration/help text, frozen deadlines, unlimited
