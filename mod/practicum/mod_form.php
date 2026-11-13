@@ -25,7 +25,7 @@ class mod_practicum_mod_form extends moodleform_mod {
         $m->addElement('select', 'mode', get_string('mode', 'practicum'),
             ['training' => get_string('training', 'practicum'), 'exam' => get_string('exam', 'practicum')]);
         $m->addElement('duration', 'timelimit', get_string('timelimit', 'practicum'), ['optional' => true]);
-        $m->hideIf('timelimit', 'mode', 'eq', 'training');
+        $m->addHelpButton('timelimit', 'timelimit', 'practicum');
         $m->addElement('text', 'maxattempts', get_string('maxattempts', 'practicum'));
         $m->setType('maxattempts', PARAM_INT);
         $m->setDefault('maxattempts', 1);

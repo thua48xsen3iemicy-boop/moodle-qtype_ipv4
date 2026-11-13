@@ -16,6 +16,8 @@ $string['mode'] = 'Mode';
 $string['training'] = 'Training (ungraded, immediate feedback)';
 $string['exam'] = 'Assessment (graded)';
 $string['timelimit'] = 'Time limit';
+$string['timelimit_help'] = 'Applies to each new attempt in either training or assessment mode. Enable to set a duration; leave disabled for no time limit. When time runs out, the attempt finishes automatically using saved answers, including any unanswered questions. Teachers can review the result; training results do not enter the gradebook. Changes do not affect attempts already started. Moodle cron must run regularly to finish attempts when the student has closed the page.';
+$string['attempttimelimit'] = 'Time limit per attempt: {$a}. The attempt finishes automatically when time runs out; save your answers regularly.';
 $string['maxattempts'] = 'Assessment attempts (0 = unlimited)';
 $string['blocks'] = 'Task blocks';
 $string['tasktype'] = 'Task type';
