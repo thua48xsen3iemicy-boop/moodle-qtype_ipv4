@@ -1,5 +1,41 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.10.2: complete teacher participant roster (2026-11-13)
+
+- Branch `feat/practicum-participant-results`, based on local timer fix 4273cf9;
+  the update includes 0.10.1 fixes. Module 2026111301 / 0.10.2. No schema change,
+  merge, push or user-server deployment.
+- Teacher results now include enrolled learners with no attempts, displaying
+  Not started / Не приступал with em dashes for grade and attempt link. Existing
+  attempts display In progress / Выполняется or Completed / Завершено, preserving
+  real zero grades, modes, all attempt links and repeat attempts. Name-sorted
+  current learners come from Moodle enrolment/capability APIs, with custom roles
+  and suspended enrolments included. Staff with report access are not shown as
+  non-starters; staff/unenrolled users' actual attempts remain visible as before.
+- New local participant_results service requires viewreports, derives activity
+  id from its module context, and merges roster/history without creating attempts
+  or gradebook entries. Teacher list still finalizes overdue work using the
+  existing lifecycle. Learner view remains restricted to the current user's
+  attempts. D024 documents the roster contract.
+- Native Moodle 5.3.1 Build 20261112 / PHP 8.4.27 / PostgreSQL 17.12 / PHPUnit
+  11.5.56: local module upgrade and separate PHPUnit database upgrade succeeded.
+  `docker exec practicum-policy-php php -d max_input_vars=5000 -d memory_limit=512M vendor/bin/phpunit --testsuite mod_practicum_testsuite,qtype_ipv4_testsuite,qtype_linuxcmd_testsuite`
+  passed **115 tests / 94,643 assertions**. Six new cases cover both modes,
+  non-starters, staff/other-course exclusion, no phantom attempts, true zero
+  grades, custom roles, suspended enrolments, multiple historical attempts after
+  unenrolment, expiry and student denial of the roster service.
+- Chromium / native Boost UI:
+  `python -u work/check-participant-browser.py` passed teacher training/exam lists
+  with idle/working/finished students, a third activity with nobody started,
+  status/grade/link checks and absence of the teacher as a non-starter. Student
+  training/exam pages showed only that student's attempts, no classmates.
+  Teacher screenshots in ignored work/participant-results-{0,1,2}.png; inspected
+  the exam table. Seed and browser scripts/logs are ignored work artifacts.
+- PHP 8.4.27 syntax: 83 source PHP files passed; git diff --check passed.
+  Existing packaging tests and release archive membership are checked for this
+  release. No production data, other themes/browsers, very large course load or
+  pagination tested. The list keeps the existing unpaginated activity layout.
+
 ## Practicum 0.10.1: timed assessment saving (2026-11-13)
 
 - Branch `fix/practicum-timed-attempts`, based on main 5542ce0. Module version

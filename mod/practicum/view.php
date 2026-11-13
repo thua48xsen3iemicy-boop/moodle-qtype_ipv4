@@ -48,17 +48,33 @@ if (has_capability('mod/practicum:attempt', $context) &&
 } else if (has_capability('mod/practicum:attempt', $context)) {
     echo html_writer::tag('p', get_string('nomoreattempts', 'practicum'));
 }
-$params = ['practicumid' => $instance->id];
-if (!has_capability('mod/practicum:viewreports', $context)) { $params['userid'] = $USER->id; }
-$table = new html_table();
-$table->head = [get_string('user'), get_string('mode', 'practicum'), get_string('grade', 'practicum'), get_string('attempt', 'practicum')];
-foreach ($DB->get_records('practicum_attempts', $params, 'id DESC') as $attempt) {
-    if (!$attempt->timefinish && $attempt->deadline &&
-            time() >= $attempt->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {
-        $attempt = \mod_practicum\local\attempts::process($attempt->id);
+$rows = [];
+if (has_capability('mod/practicum:viewreports', $context)) {
+    $rows = \mod_practicum\local\participant_results::rows($context);
+} else {
+    foreach ($DB->get_records('practicum_attempts',
+            ['practicumid' => $instance->id, 'userid' => $USER->id], 'id DESC') as $attempt) {
+        if (!$attempt->timefinish && $attempt->deadline &&
+                time() >= $attempt->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {
+            $attempt = \mod_practicum\local\attempts::process($attempt->id);
+        }
+        $rows[] = ['user' => $USER, 'attempt' => $attempt];
     }
-    $user = core_user::get_user($attempt->userid);
+}
+$table = new html_table();
+$table->attributes['class'] = 'generaltable practicum-results';
+$table->head = [get_string('user'), get_string('mode', 'practicum'), get_string('status'),
+    get_string('grade', 'practicum'), get_string('attempt', 'practicum')];
+foreach ($rows as $row) {
+    $user = $row['user'];
+    $attempt = $row['attempt'];
+    if ($attempt === null) {
+        $table->data[] = [fullname($user), get_string($instance->mode, 'practicum'),
+            get_string('notstarted', 'practicum'), '—', '—'];
+        continue;
+    }
     $table->data[] = [fullname($user), get_string($attempt->mode, 'practicum'),
+        get_string($attempt->timefinish ? 'attemptcompleted' : 'attemptinprogress', 'practicum'),
         $attempt->timefinish ? format_float($attempt->grade, 2) : '—',
         html_writer::link(new moodle_url('/mod/practicum/attempt.php', ['id' => $attempt->id]),
             get_string($attempt->timefinish ? 'review' : 'continue', 'practicum'))];

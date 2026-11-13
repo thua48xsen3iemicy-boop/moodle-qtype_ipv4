@@ -1,5 +1,16 @@
 # Decisions
 
+- D024: Teacher results combine the enrolled learner roster with existing attempt
+  history. Use Moodle enrolment/capability APIs (mod/practicum:attempt, excluding
+  report viewers without attempts), not literal role names. Include suspended
+  enrolments, custom learner roles and historical attempt owners after role or
+  enrolment changes. Each learner without an attempt gets one Not started row,
+  with no grade or attempt link; never create a placeholder attempt/grade. Keep
+  every existing attempt with its saved mode and add In progress/Completed status.
+  The roster service requires viewreports and derives the activity from its
+  module context. Learners continue to see only their own attempts. No schema
+  migration, attempt-policy change or new capability.
+
 - D023: Timed Practicum exams use a visible countdown, debounced input saves
   (700 ms), a 10-second retry interval and final POST at zero instead of reloading
   the page. Use native process_all_autosaves for AJAX saves (stable real-step

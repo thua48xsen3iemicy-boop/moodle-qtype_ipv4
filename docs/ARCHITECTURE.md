@@ -57,6 +57,15 @@ No GNS3 client, VM deployment or command execution is implemented in this founda
 
 ## Persistence ownership
 
+`participant_results` builds the teacher's roster from course enrolments with
+attempt capability, excluding report viewers who have no attempts. Include
+suspended enrolments and preserve historical attempt owners. Learners with no
+attempt receive a display-only null attempt row (Not started); existing attempts
+show In progress or Completed. No placeholder attempts or grades are inserted.
+The service checks viewreports and derives the activity id from the module
+context. The ordinary learner view continues to query only the current user's
+attempts. See D024.
+
 Never reuse another student's question usage. Grade and state changes run under
 per-attempt lock and DB transaction. HTTP endpoints enforce ownership/capabilities
 and sesskey. Cron may finish expired attempts through the same lifecycle service.
