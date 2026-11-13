@@ -1,5 +1,31 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.11.1: PR integration with timed training (2026-11-13)
+
+- Integrated origin/main c0ba17a (merged PR #20) into
+  feat/practicum-participant-results before opening the combined PR. Keep its
+  optional training time limit, duration/help text, frozen deadlines, unlimited
+  training attempts, immediate feedback and no gradebook writes. Final module
+  version 2026111302 / 0.11.1; D025/D026 supersede the conflicting timer/save
+  parts of D023 while preserving its timed training support.
+- Timed training Check waits for a pending autosave, preserves its clicked action
+  in a hidden field, stops background saves and uses native form submission.
+  This respects Moodle's disabled-button/repeat-submit guards, retains the
+  question fragment and feedback, and avoids sending Check as an autosave.
+  Updated main's late-response/cron tests to exercise the end of the 30-second
+  transport allowance. No schema change or production deployment.
+- Revalidated on Moodle 5.3.1 Build 20261112 / PHP 8.4.27 / PostgreSQL 17.12 /
+  PHPUnit 11.5.56 with the full three-plugin command documented below:
+  **121 tests, 94,692 assertions passed**. Native training browser command
+  `python -u work/check-training-moodle-browser.py` passed Check feedback/fragment,
+  autosave/reload/frozen questions, timed completion 100/100, expired partial work
+  33.33/100, unlimited training and no gradebook entries; no JavaScript errors.
+  Eight scenarios in `python -u tools/check-practicum-timer.py` passed, including
+  a simulated Moodle repeat-submit guard and disabled question submit button.
+  PHP syntax: all 83 files passed; JS syntax and diff checks passed. Packaging
+  tests and mocked deployment checks passed. Previous exam and roster native
+  browser checks remain recorded in the preceding implementation entries.
+
 ## Practicum 0.10.2: complete teacher participant roster (2026-11-13)
 
 - Branch `feat/practicum-participant-results`, based on local timer fix 4273cf9;
@@ -16,7 +42,7 @@
   id from its module context, and merges roster/history without creating attempts
   or gradebook entries. Teacher list still finalizes overdue work using the
   existing lifecycle. Learner view remains restricted to the current user's
-  attempts. D024 documents the roster contract.
+  attempts. D026 documents the roster contract.
 - Native Moodle 5.3.1 Build 20261112 / PHP 8.4.27 / PostgreSQL 17.12 / PHPUnit
   11.5.56: local module upgrade and separate PHPUnit database upgrade succeeded.
   `docker exec practicum-policy-php php -d max_input_vars=5000 -d memory_limit=512M vendor/bin/phpunit --testsuite mod_practicum_testsuite,qtype_ipv4_testsuite,qtype_linuxcmd_testsuite`
@@ -49,7 +75,7 @@
   stable if their acknowledgement is lost. Requests time out after 8 seconds;
   final delivery retries the captured payload every 5 seconds. Moodle's
   js_init_call prepends YUI, so init explicitly accepts `(Y, seconds)`.
-- D023 defines the 30-second server transport allowance. GET/cron cannot finish
+- D025 defines the 30-second server transport allowance. GET/cron cannot finish
   ahead of the final form during that window; a POST during the window finishes
   immediately. Later requests grade saved work only. Expired readonly forms
   submit finishsaved without blank question data. Existing deadlines/plans/usages
@@ -90,6 +116,48 @@
   only ignored test-install composer.lock URLs changed, no plugin dependency
   versions changed. Other themes/browsers, multi-tab conflicts, disconnected
   clients beyond the transport allowance and user production data are unverified.
+## Practicum 0.11.0: timed training (2026-11-12)
+
+- Published PR #20: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/20
+  Open for review against main; no merge or user-server deployment.
+- Branch `feat/training-time-limit`, based on main `5542ce0` (PR #19 merged).
+  Module version 2026111200 / 0.11.0. No DB migration or qtype changes.
+- The existing optional duration is visible in training and exam settings, with
+  RU/EN help. The activity page announces the configured duration before start;
+  an active attempt displays its frozen deadline through the existing renderer.
+- New training attempts snapshot a positive limit just like exams. Zero remains
+  untimed. Existing deadlines/plans/usages are untouched, including previously
+  untimed training when the activity is later given a limit. Positive limits
+  already stored on training activities now apply to their next new attempt.
+- Reuses existing browser refresh and locked lifecycle/cron expiry. Saved answers
+  are graded, unanswered slots finish, late POST data is rejected, and teachers
+  can review the stored result. Training retains immediate feedback, unlimited
+  attempts and no gradebook writes. Explicit Save/Check is still necessary;
+  no autosave. Moodle cron must run regularly for closed browser pages.
+- Added real-Moodle lifecycle regressions for timed/untimed training, frozen
+  deadlines and new limits on subsequent attempts, partial saved/checked answers,
+  late data rejection, idempotent finish, cron expiry with an untimed control,
+  gradebook separation, and timed training/exam backup/restore.
+- Actual browser run: Moodle 5.3+ Build 20261030 (core `236a9d7`), PHP 8.4.27,
+  PostgreSQL 17.11, Boost, Chromium 156.0.8078.79, desktop 1440px.
+  `python -u work/check-training-timer.py`: all checks passed. A real 15-second
+  training saved 1/4 answers and automatically became readonly at 25/100.
+  Untimed manual finish, teacher result/review, duration visibility in both modes,
+  edit/save/reopen with changed duration and disabling the limit all passed.
+  No learner JS errors. Fixtures, screenshots and logs remain ignored in work/.
+- PHP 8.4.27 syntax: all 80 source PHP files passed. Isolated
+  `docker exec --user 1000:1000 practicum-timer-test php tools/check-linuxcmd.php`:
+  75,531 assertions passed (stand-ins, separate from native integration).
+  `python -m unittest discover -s tools/tests -v`: two packaging tests and mock
+  deployment success/failure/unknown-type checks passed. `git diff --check` passed.
+- Native Moodle 5.3 integration passed on the runtime above, PHPUnit 11.5.56:
+  `docker exec --user 1000:1000 -w /app/work/moodle practicum-timer-test php vendor/bin/phpunit --testsuite qtype_ipv4_testsuite,qtype_linuxcmd_testsuite,mod_practicum_testsuite`
+  — 112 tests, 94,631 assertions, no failures/warnings. Includes the new lifecycle
+  and cron tests plus both modes of real course backup/restore. Added the missing
+  global CFG import to the form test so PHPUnit's scoped loader can load it.
+- Unrun: PHP 8.3, other DBs/themes, Mobile, Russian core UI, full Moodle core suite,
+  production scheduled runner timing and load/concurrency. The cron task itself
+  is exercised directly in lifecycle tests. No user-server deployment or merge.
 
 ## Practicum 0.10.0: first learning topic (2026-11-11)
 

@@ -15,11 +15,14 @@ Moodle question usages store generated condition, answer order, responses and
 behaviour steps. Activity attempts store owner, plan, mode, timestamps and deadline.
 Training uses immediatefeedback; exam uses deferredfeedback. Only finished exam
 attempts update gradebook (best score, 0–100). Deadline and mode are snapshotted.
-Timed exam pages show a countdown, save answers during input, and freeze/submit
-the final form at zero. A fixed 30-second transport allowance accepts that final
-POST; GET/cron wait until the allowance ends before finishing saved answers.
-After that boundary, new responses are rejected. Readonly expired pages submit
-finishsaved without question responses, preserving saved answers. See D023.
+The optional activity time limit applies to both training and exam attempts;
+zero means untimed. Each new attempt snapshots its deadline, so settings changes
+never retime a running attempt. Timed pages show a countdown, autosave input and
+freeze/submit at zero. A 30-second transport allowance accepts the final POST;
+GET/cron then finish persisted answers. Later new responses are rejected.
+Readonly expired forms finish saved responses without posting blank answers.
+Training Check retains native POST/redirect/GET and immediate feedback; timed
+training completion does not write grades to the gradebook. See D025.
 
 Adding a family: add adapter, register stable id, add configuration validation and
 form UI, implement its question type, add generation/grading/state tests. A plan
@@ -64,7 +67,7 @@ attempt receive a display-only null attempt row (Not started); existing attempts
 show In progress or Completed. No placeholder attempts or grades are inserted.
 The service checks viewreports and derives the activity id from the module
 context. The ordinary learner view continues to query only the current user's
-attempts. See D024.
+attempts. See D026.
 
 Never reuse another student's question usage. Grade and state changes run under
 per-attempt lock and DB transaction. HTTP endpoints enforce ownership/capabilities

@@ -31,6 +31,9 @@ if ($topic !== '') {
     echo html_writer::tag('p', get_string('topicpracticehint', 'practicum'));
 }
 echo html_writer::tag('p', get_string($instance->mode, 'practicum'));
+if ($instance->timelimit > 0) {
+    echo html_writer::tag('p', get_string('attempttimelimit', 'practicum', format_time($instance->timelimit)));
+}
 $active = $DB->get_record('practicum_attempts',
     ['practicumid' => $instance->id, 'userid' => $USER->id, 'timefinish' => 0]);
 if ($active && $active->deadline && time() >= $active->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {

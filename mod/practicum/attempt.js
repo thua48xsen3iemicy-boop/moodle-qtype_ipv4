@@ -100,6 +100,26 @@ M.mod_practicum.init = function(Y, seconds) {
         if (finishing) {
             return;
         }
+        if (event.submitter && event.submitter.name.endsWith('_-submit')) {
+            const submitter = event.submitter;
+            // Timed training keeps native Check/feedback and the question fragment.
+            void Promise.resolve(pending).then(() => {
+                if (!finishing) {
+                    finishing = true;
+                    clearTimeout(debounce);
+                    // The question engine can disable its submit button on the first event.
+                    // Preserve its action explicitly when resubmitting after the save.
+                    const action = document.createElement('input');
+                    action.type = 'hidden';
+                    action.name = submitter.name;
+                    action.value = submitter.value;
+                    form.appendChild(action);
+                    // Moodle's repeat-submit guard has already seen the first event.
+                    HTMLFormElement.prototype.submit.call(form);
+                }
+            });
+            return;
+        }
         if (event.submitter && event.submitter.name === 'finish') {
             freeze();
             void save(finalData, true);

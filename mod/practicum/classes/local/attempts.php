@@ -39,7 +39,7 @@ final class attempts {
                 $attempt = (object)['practicumid' => $instance->id, 'userid' => $userid, 'usageid' => $usage->get_id(),
                     'mode' => $instance->mode, 'plan' => json_encode($plan, JSON_THROW_ON_ERROR),
                     'timestart' => time(), 'timefinish' => 0, 'deadline' => 0, 'grade' => null];
-                if ($instance->mode === 'exam' && $instance->timelimit > 0) {
+                if ($instance->timelimit > 0) {
                     $attempt->deadline = $attempt->timestart + $instance->timelimit;
                 }
                 $attempt->id = $DB->insert_record('practicum_attempts', $attempt);

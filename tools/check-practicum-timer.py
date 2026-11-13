@@ -8,6 +8,7 @@ import asyncio
 from email.parser import BytesParser
 from email.policy import default
 from pathlib import Path
+from urllib.parse import parse_qsl
 from playwright.async_api import async_playwright
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'mod/practicum/attempt.js'
@@ -21,10 +22,11 @@ data-saveerror="error" data-timeup="submitting"></p>
 <input name="q1:1_:sequencecheck" type="hidden" value="0">
 <input name="q1:1_answer" aria-label="answer" value="">
 <button type="submit">Save</button><button name="finish" value="1" type="submit">Finish</button>
+<button name="q1:1_-submit" value="1" type="submit">Check</button>
 </form><script>window.M = {};</script></body></html>'''
 
 
-async def scenario(browser, name, seconds, delay=0, fail=False, manual=False, savedonly=False, lostack=False):
+async def scenario(browser, name, seconds, delay=0, fail=False, manual=False, savedonly=False, lostack=False, check=False):
     page = await browser.new_page()
     requests = []
     sequence = 0
@@ -40,8 +42,11 @@ async def scenario(browser, name, seconds, delay=0, fail=False, manual=False, sa
             return
         raw = ('Content-Type: ' + request.headers['content-type'] + '\r\n\r\n').encode() + request.post_data_buffer
         message = BytesParser(policy=default).parsebytes(raw)
-        data = {part.get_param('name', header='content-disposition'): part.get_content()
-                for part in message.iter_parts()}
+        if message.is_multipart():
+            data = {part.get_param('name', header='content-disposition'): part.get_content()
+                    for part in message.iter_parts()}
+        else:
+            data = dict(parse_qsl(request.post_data))
         active += 1
         assert active == 1, 'Overlapping question-engine POSTs'
         requests.append(data)
@@ -62,12 +67,28 @@ async def scenario(browser, name, seconds, delay=0, fail=False, manual=False, sa
             lostack = False
             await route.abort('failed')
             return
-        await route.fulfill(json={'finished': data.get('finish') == '1',
-                                 'sequence': {'q1:1_:sequencecheck': sequence}})
+        if data.get('q1:1_-submit') == '1':
+            assert 'autosave' not in data, data
+            await route.fulfill(content_type='text/html', body='<p>Result</p>')
+        else:
+            await route.fulfill(json={'finished': data.get('finish') == '1',
+                                     'sequence': {'q1:1_:sequencecheck': sequence}})
 
     await page.route('http://practicum.test/**', route_request)
     await page.goto('http://practicum.test/attempt')
     await page.add_script_tag(path=str(SCRIPT))
+    if check:
+        # Match Moodle's repeat-submit guard, which has already seen the intercepted event.
+        await page.evaluate('''() => {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', event => {
+                if (form.dataset.formSubmitted === '1') { event.preventDefault(); }
+                form.dataset.formSubmitted = '1';
+                setTimeout(() => {
+                    form.querySelector('[name="q1:1_-submit"]').disabled = true;
+                }, 0);
+            });
+        }''')
     if savedonly:
         await page.evaluate('''() => {
             const form = document.querySelector('form');
@@ -86,12 +107,17 @@ async def scenario(browser, name, seconds, delay=0, fail=False, manual=False, sa
         await page.get_by_label('answer').fill('final answer')
     if manual:
         await page.get_by_role('button', name='Finish', exact=True).click()
-    if delay or manual:
+    if check:
+        await page.get_by_role('button', name='Check', exact=True).click()
+    if (delay or manual) and not check:
         await page.wait_for_function('document.querySelector("[aria-label=answer]").disabled')
     await page.get_by_text('Result', exact=True).wait_for(timeout=15000)
     assert not errors, errors
     final = requests[-1]
-    assert final['finish'] == '1', requests
+    if check:
+        assert final['q1:1_-submit'] == '1' and 'autosave' not in final, requests
+    else:
+        assert final['finish'] == '1', requests
     if savedonly:
         assert final['finishsaved'] == '1' and 'q1:1_answer' not in final
     else:
@@ -113,6 +139,7 @@ async def main():
         await scenario(browser, 'Lost autosave acknowledgement preserves final submission', 2, lostack=True)
         await scenario(browser, 'Failed final submission retries frozen answers', 0, fail=True, savedonly=True)
         await scenario(browser, 'Expired readonly page finishes stored answers', 0, savedonly=True)
+        await scenario(browser, 'Timed training Check waits for autosave then posts natively', 20, delay=2, check=True)
         await browser.close()
 
 

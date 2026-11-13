@@ -164,17 +164,109 @@ final class lifecycle_test extends \advanced_testcase {
         $this->assertEquals(100, local\attempts::process($attempt->id, null, true)->grade);
     }
 
-    public function test_training_is_untimed_and_does_not_gradebook(): void {
+    public function test_training_can_be_untimed_and_does_not_gradebook(): void {
         global $DB;
         [$p,$u,$c]=$this->setup_activity('training');
+        $p->timelimit = 0;
+        $DB->set_field('practicum', 'timelimit', 0, ['id' => $p->id]);
         $a=local\attempts::start($p,$c,$u->id);
         $this->assertEquals(0,$a->deadline);
         $usage=\question_engine::load_questions_usage_by_activity($a->usageid);
         $this->assertSame('immediatefeedback',$usage->get_preferred_behaviour());
+        $p->timelimit = 60;
+        $DB->set_field('practicum', 'timelimit', 60, ['id' => $p->id]);
+        $this->assertEquals(0, local\attempts::start($p, $c, $u->id)->deadline);
         local\attempts::process($a->id,null,true);
         $next=local\attempts::start($p,$c,$u->id);
         $this->assertNotEquals($a->id,$next->id);
+        $this->assertEquals($next->timestart + 60, $next->deadline);
         $this->assertSame(0,$DB->count_records('grade_grades',['userid'=>$u->id]));
+    }
+
+    public static function attempt_modes(): array {
+        return ['training' => ['training'], 'exam' => ['exam']];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('attempt_modes')]
+    public function test_deadline_is_frozen_on_start_and_new_attempt_uses_changed_limit(string $mode): void {
+        global $DB;
+        [$activity, $user, $context] = $this->setup_activity($mode);
+        $attempt = local\attempts::start($activity, $context, $user->id);
+        $this->assertEquals($attempt->timestart + 60, $attempt->deadline);
+        $activity->timelimit = 120;
+        $activity->maxattempts = 0;
+        $DB->update_record('practicum', $activity);
+        $resumed = local\attempts::start($activity, $context, $user->id);
+        $this->assertEquals($attempt->id, $resumed->id);
+        $this->assertEquals($attempt->deadline, $resumed->deadline);
+        $this->assertSame($attempt->plan, $resumed->plan);
+        local\attempts::process($attempt->id, null, true);
+        $next = local\attempts::start($activity, $context, $user->id);
+        $this->assertEquals($next->timestart + 120, $next->deadline);
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('attempt_modes')]
+    public function test_expiry_keeps_saved_answers_and_rejects_late_answers_in_both_modes(string $mode): void {
+        global $DB;
+        [$activity, $user, $context] = $this->setup_activity($mode);
+        $attempt = local\attempts::start($activity, $context, $user->id);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $slots = $usage->get_slots();
+        // Save one correct response through the same POST processing used by the page.
+        $qa = $usage->get_question_attempt($slots[0]);
+        $post = ['slots' => (string)$slots[0],
+            $qa->get_control_field_name('sequencecheck') => $qa->get_sequence_check_count(),
+            $qa->get_qt_field_name('answer') => $qa->get_question()->get_correct_response()['answer']];
+        $saved = local\attempts::process($attempt->id, $post);
+        $this->assertEquals(0, $saved->timefinish);
+        // Also check one question in training; the last question stays unanswered.
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $response = $usage->get_question($slots[1])->get_correct_response();
+        if ($mode === 'training') { $response['-submit'] = 1; }
+        $usage->process_action($slots[1], $response);
+        \question_engine::save_questions_usage_by_activity($usage);
+        $qa = $usage->get_question_attempt($slots[2]);
+        $latepost = ['slots' => (string)$slots[2],
+            $qa->get_control_field_name('sequencecheck') => $qa->get_sequence_check_count(),
+            $qa->get_qt_field_name('answer') => $qa->get_question()->get_correct_response()['answer']];
+        $DB->set_field('practicum_attempts', 'deadline', time() - local\attempts::SUBMISSION_GRACE - 1, ['id' => $attempt->id]);
+        $finished = local\attempts::process($attempt->id, $latepost);
+        $this->assertGreaterThan(0, $finished->timefinish);
+        $this->assertEqualsWithDelta(200 / 3, $finished->grade, 0.00001);
+        $this->assertSame($attempt->plan, $finished->plan);
+        $review = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        foreach ($slots as $slot) { $this->assertTrue($review->get_question_state($slot)->is_finished()); }
+        $this->assertArrayNotHasKey('answer', $review->get_question_attempt($slots[2])->get_last_qt_data());
+        $this->assertEquals($DB->get_record('practicum_attempts', ['id' => $attempt->id]),
+            local\attempts::process($attempt->id, $latepost, true));
+        if ($mode === 'training') {
+            $this->assertSame(0, $DB->count_records('grade_grades', ['userid' => $user->id]));
+        } else {
+            $grade = $DB->get_record_sql('SELECT g.* FROM {grade_grades} g
+                JOIN {grade_items} i ON i.id = g.itemid
+                WHERE i.itemmodule = ? AND i.iteminstance = ? AND g.userid = ?',
+                ['practicum', $activity->id, $user->id]);
+            $this->assertEqualsWithDelta($finished->grade, $grade->rawgrade, 0.00001);
+        }
+    }
+
+    public function test_cron_finishes_training_with_closed_page_but_leaves_untimed_attempt_alone(): void {
+        global $DB;
+        [$activity, $user, $context] = $this->setup_activity('training');
+        $timed = local\attempts::start($activity, $context, $user->id);
+        $DB->set_field('practicum_attempts', 'deadline', time() - local\attempts::SUBMISSION_GRACE - 1, ['id' => $timed->id]);
+        $other = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($other->id, $activity->course, 'student');
+        $activity->timelimit = 0;
+        $untimed = local\attempts::start($activity, $context, $other->id);
+        (new task\expire_attempts())->execute();
+        $finished = $DB->get_record('practicum_attempts', ['id' => $timed->id], '*', MUST_EXIST);
+        $this->assertGreaterThan(0, $finished->timefinish);
+        $this->assertEquals(0, $finished->grade);
+        $this->assertEquals(0, $DB->get_field('practicum_attempts', 'timefinish', ['id' => $untimed->id]));
+        $this->assertSame(0, $DB->count_records('grade_grades', ['userid' => $user->id]));
+        (new task\expire_attempts())->execute();
+        $this->assertEquals($finished, $DB->get_record('practicum_attempts', ['id' => $timed->id]));
     }
     public function test_deadline_finishes_saved_answers_and_rejects_late_data(): void {
         global $DB;
@@ -359,11 +451,12 @@ final class lifecycle_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('practicum_attempts',['id'=>$a->id]));
         $this->assertFalse($DB->record_exists('question_usages',['id'=>$a->usageid]));
     }
-    public function test_backup_restore_settings_and_finished_attempt(): void {
+    #[\PHPUnit\Framework\Attributes\DataProvider('attempt_modes')]
+    public function test_backup_restore_settings_and_finished_attempt(string $mode): void {
         global $CFG,$DB,$USER;
         require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
         require_once($CFG->dirroot.'/backup/util/includes/restore_includes.php');
-        [$p,$u,$c]=$this->setup_activity();$a=local\attempts::start($p,$c,$u->id);
+        [$p,$u,$c]=$this->setup_activity($mode);$a=local\attempts::start($p,$c,$u->id);
         local\attempts::process($a->id,null,true);$this->setAdminUser();
         $target=$this->getDataGenerator()->create_course();
         $bc=new \backup_controller(\backup::TYPE_1COURSE,$p->course,\backup::FORMAT_MOODLE,
@@ -377,7 +470,10 @@ final class lifecycle_test extends \advanced_testcase {
         $this->assertTrue($rc->execute_precheck());$rc->execute_plan();$rc->destroy();
         $restored=$DB->get_record('practicum',['course'=>$target->id],'*',MUST_EXIST);
         $this->assertSame($p->blocks,$restored->blocks);
+        $this->assertEquals($p->timelimit, $restored->timelimit);
         $ra=$DB->get_record('practicum_attempts',['practicumid'=>$restored->id],'*',MUST_EXIST);
+        $this->assertSame($mode, $ra->mode);
+        $this->assertEquals(60, $ra->deadline - $ra->timestart);
         $original=\question_engine::load_questions_usage_by_activity($a->usageid);
         $copy=\question_engine::load_questions_usage_by_activity($ra->usageid);
         $this->assertCount(3,$copy->get_slots());

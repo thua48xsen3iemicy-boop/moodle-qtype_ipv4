@@ -1,6 +1,6 @@
 # Decisions
 
-- D024: Teacher results combine the enrolled learner roster with existing attempt
+- D026: Teacher results combine the enrolled learner roster with existing attempt
   history. Use Moodle enrolment/capability APIs (mod/practicum:attempt, excluding
   report viewers without attempts), not literal role names. Include suspended
   enrolments, custom learner roles and historical attempt owners after role or
@@ -11,9 +11,12 @@
   module context. Learners continue to see only their own attempts. No schema
   migration, attempt-policy change or new capability.
 
-- D023: Timed Practicum exams use a visible countdown, debounced input saves
+- D025: Timed Practicum attempts use a visible countdown, debounced input saves
   (700 ms), a 10-second retry interval and final POST at zero instead of reloading
-  the page. Use native process_all_autosaves for AJAX saves (stable real-step
+  the page. This supersedes the save/expiry rules of D023, including timed
+  training. Its Check button waits for autosave, then uses native POST/redirect/GET
+  with the clicked question submit control; it must not become a plain autosave.
+  Use native process_all_autosaves for AJAX saves (stable real-step
   sequence checks on retries); use process_all_actions for final/manual POSTs.
   Serialize requests and refresh native question-engine sequence checks.
   At zero, capture the final form once and disable inputs. A fixed 30-second
@@ -151,3 +154,13 @@
   use a new id and keep v1 content available. Custom question sets and the existing
   single training/exam mode remain supported; combined learning stages and
   mastery completion are deferred until this first topic is evaluated.
+
+- D023: Expose the existing optional per-attempt time limit for training as well
+  as assessment. Reuse the saved deadline, browser expiry refresh and locked
+  lifecycle/cron processing; do not add a second duration field or migration.
+  On expiry finish saved responses, including unfinished questions, reject late
+  browser responses and store the result for teacher review. Training retains
+  immediate feedback, unlimited attempts and no gradebook writes. Zero remains
+  untimed; existing attempts retain their deadline, even after settings changes.
+  Save/check remains explicit (no autosave). Regular Moodle cron is required
+  for students who close the page. No response data is accepted after expiry.
