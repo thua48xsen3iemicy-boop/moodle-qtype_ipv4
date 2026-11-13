@@ -1,5 +1,60 @@
 # Handoff: Practicum foundation
 
+## Practicum 0.10.1: timed assessment saving (2026-11-13)
+
+- Branch `fix/practicum-timed-attempts`, based on main 5542ce0. Module version
+  2026111300 / 0.10.1. No schema/qtype changes, user-server deployment or merge.
+- Confirmed loss mechanism: attempt.php reloaded at the deadline without posting
+  the form; attempts::process rejected all POST answers at/after that deadline.
+  Only manually persisted answers could be graded. There was no live countdown.
+- Added visible countdown and save status, native question-engine autosaves after
+  input (700 ms debounce), periodic retries, serialized manual/final submission
+  and freeze/capture of answers at zero. Native autosaves keep sequence checks
+  stable if their acknowledgement is lost. Requests time out after 8 seconds;
+  final delivery retries the captured payload every 5 seconds. Moodle's
+  js_init_call prepends YUI, so init explicitly accepts `(Y, seconds)`.
+- D023 defines the 30-second server transport allowance. GET/cron cannot finish
+  ahead of the final form during that window; a POST during the window finishes
+  immediately. Later requests grade saved work only. Expired readonly forms
+  submit finishsaved without blank question data. Existing deadlines/plans/usages
+  remain untouched. Ownership, capability and sesskey checks precede JSON saves.
+- Activity listing finalizes overdue attempts, offers Continue for active work,
+  and hides Start when the exam limit is exhausted, retaining Review. Existing
+  server limit enforcement was already present. The reported question changes
+  were NOT reproduced: real-engine tests and browser reload/review kept original
+  questions, usage, plan and one attempt. No production records were available
+  to diagnose the specific complaints. No retrospective regrading/data recovery;
+  answers never sent to the server cannot be recovered from the Moodle DB.
+- Actual native verification: Moodle 5.3.1 Build 20261112, PHP 8.4.27, PostgreSQL
+  17.12, PHPUnit 11.5.56, Linux / Boost. Installed a separate ignored work/moodle
+  checkout, isolated normal/test table prefixes and dataroots, Docker containers
+  practicum-policy-php and practicum-policy-db. Full command:
+  `docker exec practicum-policy-php php -d max_input_vars=5000 -d memory_limit=512M vendor/bin/phpunit --testsuite mod_practicum_testsuite,qtype_ipv4_testsuite,qtype_linuxcmd_testsuite`
+  passed **109 tests / 94,615 assertions**, no warnings. Covers native autosave
+  retry, final POST grace, partial saved work after cron expiry, gradebook,
+  repeated starts, immutable questions/settings, existing families and backup.
+  Fixed a pre-existing PHPUnit loader issue by declaring global CFG before the
+  form include in mod_form_test.php.
+- Actual Chromium browser run: `python -u work/check-timed-moodle-browser.py`
+  against that native install passed both learner scenarios: countdown/automatic
+  finish 100/100 and partial saved work/expired-page finish 33.33/100. Verified
+  autosave, saved responses after reload, exact question snapshots, gradebook,
+  exhausted Start button, one stored attempt and Review. No JavaScript errors.
+  Fixture scripts, logs and screenshots remain ignored in work/.
+- `python -u tools/check-practicum-timer.py`: seven Chromium scenarios passed,
+  including slow saves, freeze at zero, manual finish during autosave, failed
+  final POST retry, lost autosave acknowledgement and readonly expired page.
+  This deterministic HTTP fixture supplements the native browser run.
+- PHP 8.4.27 syntax: all 81 source PHP files passed. Standalone commands
+  `LD_LIBRARY_PATH="$PWD/work/php-runtime/usr/lib/x86_64-linux-gnu" work/php-runtime/usr/bin/php8.4 -n tools/check-practicum-lifecycle.php`
+  and the same runtime with `tools/check-linuxcmd.php` passed 47 policy and
+  75,531 family/configuration assertions respectively (stand-ins, not native).
+  Two packaging tests plus mocked deployment checks, JS syntax and diff checks
+  passed. Test dependency archives used official codeload GitHub at locked refs;
+  only ignored test-install composer.lock URLs changed, no plugin dependency
+  versions changed. Other themes/browsers, multi-tab conflicts, disconnected
+  clients beyond the transport allowance and user production data are unverified.
+
 ## Practicum 0.10.0: first learning topic (2026-11-11)
 
 - Published PR #19: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/19

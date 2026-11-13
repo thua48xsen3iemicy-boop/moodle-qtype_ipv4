@@ -31,15 +31,32 @@ if ($topic !== '') {
     echo html_writer::tag('p', get_string('topicpracticehint', 'practicum'));
 }
 echo html_writer::tag('p', get_string($instance->mode, 'practicum'));
-if (has_capability('mod/practicum:attempt', $context)) {
+$active = $DB->get_record('practicum_attempts',
+    ['practicumid' => $instance->id, 'userid' => $USER->id, 'timefinish' => 0]);
+if ($active && $active->deadline && time() >= $active->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {
+    $active = \mod_practicum\local\attempts::process($active->id);
+    if ($active->timefinish) {
+        $active = false;
+    }
+}
+$used = $DB->count_records('practicum_attempts',
+    ['practicumid' => $instance->id, 'userid' => $USER->id, 'mode' => 'exam']);
+if (has_capability('mod/practicum:attempt', $context) &&
+        ($active || $instance->mode !== 'exam' || !$instance->maxattempts || $used < $instance->maxattempts)) {
     echo $OUTPUT->single_button(new moodle_url('/mod/practicum/view.php', ['id' => $id, 'start' => 1]),
-        get_string('start', 'practicum'), 'post');
+        get_string($active ? 'continue' : 'start', 'practicum'), 'post');
+} else if (has_capability('mod/practicum:attempt', $context)) {
+    echo html_writer::tag('p', get_string('nomoreattempts', 'practicum'));
 }
 $params = ['practicumid' => $instance->id];
 if (!has_capability('mod/practicum:viewreports', $context)) { $params['userid'] = $USER->id; }
 $table = new html_table();
 $table->head = [get_string('user'), get_string('mode', 'practicum'), get_string('grade', 'practicum'), get_string('attempt', 'practicum')];
 foreach ($DB->get_records('practicum_attempts', $params, 'id DESC') as $attempt) {
+    if (!$attempt->timefinish && $attempt->deadline &&
+            time() >= $attempt->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {
+        $attempt = \mod_practicum\local\attempts::process($attempt->id);
+    }
     $user = core_user::get_user($attempt->userid);
     $table->data[] = [fullname($user), get_string($attempt->mode, 'practicum'),
         $attempt->timefinish ? format_float($attempt->grade, 2) : '—',

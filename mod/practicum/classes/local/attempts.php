@@ -8,6 +8,9 @@ namespace mod_practicum\local;
 defined('MOODLE_INTERNAL') || die();
 /** Lifecycle owner: question engine persists generated state, module persists policy snapshot. */
 final class attempts {
+    /** Transport allowance for the final form, not extra working time in the UI. */
+    public const SUBMISSION_GRACE = 30;
+
     public static function start(object $instance, \context_module $context, int $userid): object {
         global $DB;
         require_capability('mod/practicum:attempt', $context, $userid);
@@ -45,19 +48,30 @@ final class attempts {
             } catch (\Throwable $error) { $tx->rollback($error); }
         } finally { $lock->release(); }
     }
-    public static function process(int $id, ?array $post = null, bool $finish = false): object {
+    public static function process(int $id, ?array $post = null, bool $finish = false, bool $autosave = false): object {
         global $DB;
+        // Judge arrival before waiting for a concurrent autosave's lock.
+        $received = time();
         $lock = \core\lock\lock_config::get_lock_factory('mod_practicum')->get_lock('attempt:' . $id, 10);
         if (!$lock) { throw new \moodle_exception('busy', 'practicum'); }
         try {
             $attempt = $DB->get_record('practicum_attempts', ['id' => $id], '*', MUST_EXIST);
             if ($attempt->timefinish) { return $attempt; }
-            $expired = $attempt->deadline && time() >= $attempt->deadline;
+            $expired = $attempt->deadline && $received >= $attempt->deadline;
+            $closed = $attempt->deadline && $received >= $attempt->deadline + self::SUBMISSION_GRACE;
             $tx = $DB->start_delegated_transaction();
             try {
                 $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
-                if ($post !== null && !$expired) { $usage->process_all_actions(time(), $post); }
-                if ($finish || $expired) {
+                if ($post !== null && !$closed) {
+                    if ($autosave) {
+                        // Native autosaves preserve sequence checks if a save acknowledgement is lost.
+                        $usage->process_all_autosaves($received, $post);
+                    } else {
+                        $usage->process_all_actions($received, $post);
+                    }
+                }
+                // GET/cron must not race the browser's final POST at the deadline.
+                if ($finish || $closed || ($expired && $post !== null)) {
                     $usage->finish_all_questions();
                     $attempt->timefinish = time();
                     $attempt->grade = 100 * $usage->get_total_mark() / count($usage->get_slots());

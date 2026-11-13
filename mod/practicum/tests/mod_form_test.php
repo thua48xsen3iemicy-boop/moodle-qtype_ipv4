@@ -2,6 +2,7 @@
 // Moodle plugin, GPL v3 or later.
 namespace mod_practicum;
 defined('MOODLE_INTERNAL') || die();
+global $CFG;
 require_once(__DIR__ . '/../mod_form.php');
 
 /** Settings must reopen as category selections, without expanding the visible type list. */

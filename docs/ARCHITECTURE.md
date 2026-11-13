@@ -15,7 +15,11 @@ Moodle question usages store generated condition, answer order, responses and
 behaviour steps. Activity attempts store owner, plan, mode, timestamps and deadline.
 Training uses immediatefeedback; exam uses deferredfeedback. Only finished exam
 attempts update gradebook (best score, 0–100). Deadline and mode are snapshotted.
-Expired attempts reject new responses and finish saved answers on access or cron.
+Timed exam pages show a countdown, save answers during input, and freeze/submit
+the final form at zero. A fixed 30-second transport allowance accepts that final
+POST; GET/cron wait until the allowance ends before finishing saved answers.
+After that boundary, new responses are rejected. Readonly expired pages submit
+finishsaved without question responses, preserving saved answers. See D023.
 
 Adding a family: add adapter, register stable id, add configuration validation and
 form UI, implement its question type, add generation/grading/state tests. A plan

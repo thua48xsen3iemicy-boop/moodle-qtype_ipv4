@@ -1,5 +1,22 @@
 # Decisions
 
+- D023: Timed Practicum exams use a visible countdown, debounced input saves
+  (700 ms), a 10-second retry interval and final POST at zero instead of reloading
+  the page. Use native process_all_autosaves for AJAX saves (stable real-step
+  sequence checks on retries); use process_all_actions for final/manual POSTs.
+  Serialize requests and refresh native question-engine sequence checks.
+  At zero, capture the final form once and disable inputs. A fixed 30-second
+  transport allowance accepts the payload and immediately finishes the attempt;
+  GET/cron defer automatic completion until deadline + 30 seconds. This is a
+  deliberate change from rejecting all POSTs at the exact deadline: the server
+  can enforce receipt time but cannot prove when a browser captured its answers.
+  No client timestamp is trusted. After the allowance, only persisted answers
+  count. Existing deadlines, conditions, usages and plans are never regenerated.
+  Expired readonly forms finish persisted answers without submitting empty
+  question controls. Keep ownership/capabilities/sesskey, native engine actions,
+  per-attempt locks, transactions and best finished exam grade policy. Hide start
+  when the exam limit is exhausted and retain review access. No DB migration.
+
 - D001: Keep qtype_ipv4 backwards compatible; add mod_practicum as separate package.
 - D002: Input in Practicum is text, except Yes/No tasks per D011; retain quiz radio mode.
 - D003: Prefix selection remains independent random; no balancing policy.
