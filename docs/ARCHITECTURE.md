@@ -15,11 +15,14 @@ Moodle question usages store generated condition, answer order, responses and
 behaviour steps. Activity attempts store owner, plan, mode, timestamps and deadline.
 Training uses immediatefeedback; exam uses deferredfeedback. Only finished exam
 attempts update gradebook (best score, 0–100). Deadline and mode are snapshotted.
-Expired attempts reject new responses and finish saved answers on access or cron.
 The optional activity time limit applies to both training and exam attempts;
-zero means untimed. Each new attempt snapshots its own deadline, so changing
-settings never retimes a running attempt (including legacy untimed training).
-Training expiry stores a reviewable result without writing a gradebook grade.
+zero means untimed. Each new attempt snapshots its deadline, so settings changes
+never retime a running attempt. Timed pages show a countdown, autosave input and
+freeze/submit at zero. A 30-second transport allowance accepts the final POST;
+GET/cron then finish persisted answers. Later new responses are rejected.
+Readonly expired forms finish saved responses without posting blank answers.
+Training Check retains native POST/redirect/GET and immediate feedback; timed
+training completion does not write grades to the gradebook. See D025.
 
 Adding a family: add adapter, register stable id, add configuration validation and
 form UI, implement its question type, add generation/grading/state tests. A plan
@@ -56,6 +59,15 @@ Credentials belong in Moodle configuration/secret storage, never in plans or JS.
 No GNS3 client, VM deployment or command execution is implemented in this foundation.
 
 ## Persistence ownership
+
+`participant_results` builds the teacher's roster from course enrolments with
+attempt capability, excluding report viewers who have no attempts. Include
+suspended enrolments and preserve historical attempt owners. Learners with no
+attempt receive a display-only null attempt row (Not started); existing attempts
+show In progress or Completed. No placeholder attempts or grades are inserted.
+The service checks viewreports and derives the activity id from the module
+context. The ordinary learner view continues to query only the current user's
+attempts. See D026.
 
 Never reuse another student's question usage. Grade and state changes run under
 per-attempt lock and DB transaction. HTTP endpoints enforce ownership/capabilities

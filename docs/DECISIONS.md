@@ -1,5 +1,36 @@
 # Decisions
 
+- D026: Teacher results combine the enrolled learner roster with existing attempt
+  history. Use Moodle enrolment/capability APIs (mod/practicum:attempt, excluding
+  report viewers without attempts), not literal role names. Include suspended
+  enrolments, custom learner roles and historical attempt owners after role or
+  enrolment changes. Each learner without an attempt gets one Not started row,
+  with no grade or attempt link; never create a placeholder attempt/grade. Keep
+  every existing attempt with its saved mode and add In progress/Completed status.
+  The roster service requires viewreports and derives the activity from its
+  module context. Learners continue to see only their own attempts. No schema
+  migration, attempt-policy change or new capability.
+
+- D025: Timed Practicum attempts use a visible countdown, debounced input saves
+  (700 ms), a 10-second retry interval and final POST at zero instead of reloading
+  the page. This supersedes the save/expiry rules of D023, including timed
+  training. Its Check button waits for autosave, then uses native POST/redirect/GET
+  with the clicked question submit control; it must not become a plain autosave.
+  Use native process_all_autosaves for AJAX saves (stable real-step
+  sequence checks on retries); use process_all_actions for final/manual POSTs.
+  Serialize requests and refresh native question-engine sequence checks.
+  At zero, capture the final form once and disable inputs. A fixed 30-second
+  transport allowance accepts the payload and immediately finishes the attempt;
+  GET/cron defer automatic completion until deadline + 30 seconds. This is a
+  deliberate change from rejecting all POSTs at the exact deadline: the server
+  can enforce receipt time but cannot prove when a browser captured its answers.
+  No client timestamp is trusted. After the allowance, only persisted answers
+  count. Existing deadlines, conditions, usages and plans are never regenerated.
+  Expired readonly forms finish persisted answers without submitting empty
+  question controls. Keep ownership/capabilities/sesskey, native engine actions,
+  per-attempt locks, transactions and best finished exam grade policy. Hide start
+  when the exam limit is exhausted and retain review access. No DB migration.
+
 - D001: Keep qtype_ipv4 backwards compatible; add mod_practicum as separate package.
 - D002: Input in Practicum is text, except Yes/No tasks per D011; retain quiz radio mode.
 - D003: Prefix selection remains independent random; no balancing policy.

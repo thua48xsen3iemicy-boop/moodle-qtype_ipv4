@@ -34,17 +34,50 @@ echo html_writer::tag('p', get_string($instance->mode, 'practicum'));
 if ($instance->timelimit > 0) {
     echo html_writer::tag('p', get_string('attempttimelimit', 'practicum', format_time($instance->timelimit)));
 }
-if (has_capability('mod/practicum:attempt', $context)) {
-    echo $OUTPUT->single_button(new moodle_url('/mod/practicum/view.php', ['id' => $id, 'start' => 1]),
-        get_string('start', 'practicum'), 'post');
+$active = $DB->get_record('practicum_attempts',
+    ['practicumid' => $instance->id, 'userid' => $USER->id, 'timefinish' => 0]);
+if ($active && $active->deadline && time() >= $active->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {
+    $active = \mod_practicum\local\attempts::process($active->id);
+    if ($active->timefinish) {
+        $active = false;
+    }
 }
-$params = ['practicumid' => $instance->id];
-if (!has_capability('mod/practicum:viewreports', $context)) { $params['userid'] = $USER->id; }
+$used = $DB->count_records('practicum_attempts',
+    ['practicumid' => $instance->id, 'userid' => $USER->id, 'mode' => 'exam']);
+if (has_capability('mod/practicum:attempt', $context) &&
+        ($active || $instance->mode !== 'exam' || !$instance->maxattempts || $used < $instance->maxattempts)) {
+    echo $OUTPUT->single_button(new moodle_url('/mod/practicum/view.php', ['id' => $id, 'start' => 1]),
+        get_string($active ? 'continue' : 'start', 'practicum'), 'post');
+} else if (has_capability('mod/practicum:attempt', $context)) {
+    echo html_writer::tag('p', get_string('nomoreattempts', 'practicum'));
+}
+$rows = [];
+if (has_capability('mod/practicum:viewreports', $context)) {
+    $rows = \mod_practicum\local\participant_results::rows($context);
+} else {
+    foreach ($DB->get_records('practicum_attempts',
+            ['practicumid' => $instance->id, 'userid' => $USER->id], 'id DESC') as $attempt) {
+        if (!$attempt->timefinish && $attempt->deadline &&
+                time() >= $attempt->deadline + \mod_practicum\local\attempts::SUBMISSION_GRACE) {
+            $attempt = \mod_practicum\local\attempts::process($attempt->id);
+        }
+        $rows[] = ['user' => $USER, 'attempt' => $attempt];
+    }
+}
 $table = new html_table();
-$table->head = [get_string('user'), get_string('mode', 'practicum'), get_string('grade', 'practicum'), get_string('attempt', 'practicum')];
-foreach ($DB->get_records('practicum_attempts', $params, 'id DESC') as $attempt) {
-    $user = core_user::get_user($attempt->userid);
+$table->attributes['class'] = 'generaltable practicum-results';
+$table->head = [get_string('user'), get_string('mode', 'practicum'), get_string('status'),
+    get_string('grade', 'practicum'), get_string('attempt', 'practicum')];
+foreach ($rows as $row) {
+    $user = $row['user'];
+    $attempt = $row['attempt'];
+    if ($attempt === null) {
+        $table->data[] = [fullname($user), get_string($instance->mode, 'practicum'),
+            get_string('notstarted', 'practicum'), '—', '—'];
+        continue;
+    }
     $table->data[] = [fullname($user), get_string($attempt->mode, 'practicum'),
+        get_string($attempt->timefinish ? 'attemptcompleted' : 'attemptinprogress', 'practicum'),
         $attempt->timefinish ? format_float($attempt->grade, 2) : '—',
         html_writer::link(new moodle_url('/mod/practicum/attempt.php', ['id' => $attempt->id]),
             get_string($attempt->timefinish ? 'review' : 'continue', 'practicum'))];

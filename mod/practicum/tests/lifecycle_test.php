@@ -229,7 +229,7 @@ final class lifecycle_test extends \advanced_testcase {
         $latepost = ['slots' => (string)$slots[2],
             $qa->get_control_field_name('sequencecheck') => $qa->get_sequence_check_count(),
             $qa->get_qt_field_name('answer') => $qa->get_question()->get_correct_response()['answer']];
-        $DB->set_field('practicum_attempts', 'deadline', time() - 1, ['id' => $attempt->id]);
+        $DB->set_field('practicum_attempts', 'deadline', time() - local\attempts::SUBMISSION_GRACE - 1, ['id' => $attempt->id]);
         $finished = local\attempts::process($attempt->id, $latepost);
         $this->assertGreaterThan(0, $finished->timefinish);
         $this->assertEqualsWithDelta(200 / 3, $finished->grade, 0.00001);
@@ -254,7 +254,7 @@ final class lifecycle_test extends \advanced_testcase {
         global $DB;
         [$activity, $user, $context] = $this->setup_activity('training');
         $timed = local\attempts::start($activity, $context, $user->id);
-        $DB->set_field('practicum_attempts', 'deadline', time() - 1, ['id' => $timed->id]);
+        $DB->set_field('practicum_attempts', 'deadline', time() - local\attempts::SUBMISSION_GRACE - 1, ['id' => $timed->id]);
         $other = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($other->id, $activity->course, 'student');
         $activity->timelimit = 0;
@@ -275,12 +275,99 @@ final class lifecycle_test extends \advanced_testcase {
         $post=['slots'=>implode(',',$usage->get_slots())];
         foreach($usage->get_slots() as $slot){
             $qa=$usage->get_question_attempt($slot);
+            $post[$qa->get_control_field_name('sequencecheck')]=$qa->get_sequence_check_count();
             $post[$qa->get_qt_field_name('answer')]=$qa->get_question()->get_correct_response()['answer'];
         }
-        $DB->set_field('practicum_attempts','deadline',time()-1,['id'=>$a->id]);
+        $DB->set_field('practicum_attempts','deadline',time()-local\attempts::SUBMISSION_GRACE-1,['id'=>$a->id]);
         $a=local\attempts::process($a->id,$post);
         $this->assertGreaterThan(0,$a->timefinish);$this->assertEquals(0,$a->grade);
         $this->assertEquals($a,local\attempts::process($a->id,$post,true));
+    }
+
+    public function test_final_post_during_transport_grace_saves_and_grades(): void {
+        global $DB;
+        [$activity, $user, $context] = $this->setup_activity();
+        $attempt = local\attempts::start($activity, $context, $user->id);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $post = ['slots' => implode(',', $usage->get_slots())];
+        foreach ($usage->get_slots() as $slot) {
+            $qa = $usage->get_question_attempt($slot);
+            $post[$qa->get_control_field_name('sequencecheck')] = $qa->get_sequence_check_count();
+            $post[$qa->get_qt_field_name('answer')] = $qa->get_question()->get_correct_response()['answer'];
+        }
+        // Retrying a native autosave after a lost acknowledgement must keep final POST checks valid.
+        local\attempts::process($attempt->id, $post, false, true);
+        local\attempts::process($attempt->id, $post, false, true);
+        $DB->set_field('practicum_attempts', 'deadline', time() - 1, ['id' => $attempt->id]);
+        // A concurrent page load or cron tick must leave time for the final form to arrive.
+        $this->assertEquals(0, local\attempts::process($attempt->id)->timefinish);
+        $finished = local\attempts::process($attempt->id, $post);
+        $this->assertGreaterThan(0, $finished->timefinish);
+        $this->assertEquals(100, $finished->grade);
+        $this->assertEquals($finished, local\attempts::process($attempt->id, $post, true));
+        $grade = $DB->get_record_sql('SELECT g.* FROM {grade_grades} g JOIN {grade_items} i ON i.id=g.itemid
+            WHERE i.itemmodule=? AND i.iteminstance=? AND g.userid=?', ['practicum', $activity->id, $user->id]);
+        $this->assertEquals(100, $grade->rawgrade);
+    }
+
+    public function test_autosaved_partial_work_survives_cron_expiry_and_late_post(): void {
+        global $DB;
+        [$activity, $user, $context] = $this->setup_activity();
+        $attempt = local\attempts::start($activity, $context, $user->id);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $slots = $usage->get_slots();
+        $qa = $usage->get_question_attempt($slots[0]);
+        $answer = $qa->get_question()->get_correct_response()['answer'];
+        $post = ['slots' => (string)$slots[0], $qa->get_control_field_name('sequencecheck') => $qa->get_sequence_check_count(),
+            $qa->get_qt_field_name('answer') => $answer];
+        local\attempts::process($attempt->id, $post, false, true);
+        $saved = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $this->assertSame($answer, $saved->get_question_attempt($slots[0])->get_last_qt_var('answer'));
+        $this->assertEquals($post[$qa->get_control_field_name('sequencecheck')],
+            $saved->get_question_attempt($slots[0])->get_sequence_check_count());
+        $DB->set_field('practicum_attempts', 'deadline', time() - local\attempts::SUBMISSION_GRACE - 1,
+            ['id' => $attempt->id]);
+        (new \mod_practicum\task\expire_attempts())->execute();
+        $finished = local\attempts::process($attempt->id, $post, true);
+        $this->assertGreaterThan(0, $finished->timefinish);
+        $this->assertEqualsWithDelta(100 / 3, (float)$finished->grade, 0.00001);
+        $loaded = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $this->assertSame($answer, $loaded->get_question_attempt($slots[0])->get_last_qt_var('answer'));
+        $this->assertSame($attempt->plan, $finished->plan);
+    }
+
+    public function test_one_attempt_resume_and_repeated_start_never_replaces_questions(): void {
+        global $DB;
+        [$activity, $user, $context] = $this->setup_activity();
+        $attempt = local\attempts::start($activity, $context, $user->id);
+        $usage = \question_engine::load_questions_usage_by_activity($attempt->usageid);
+        $snapshots = [];
+        foreach ($usage->get_slots() as $slot) {
+            $snapshots[$slot] = $usage->get_question($slot)->exercise;
+        }
+        $activity->blocks = json_encode([['type' => 'ipv4_nextip', 'count' => 1, 'prefixes' => [8]]]);
+        $DB->set_field('practicum', 'blocks', $activity->blocks, ['id' => $activity->id]);
+        for ($i = 0; $i < 3; $i++) {
+            $resumed = local\attempts::start($activity, $context, $user->id);
+            $this->assertEquals($attempt->id, $resumed->id);
+            $this->assertEquals($attempt->usageid, $resumed->usageid);
+            $this->assertSame($attempt->plan, $resumed->plan);
+            $loaded = \question_engine::load_questions_usage_by_activity($resumed->usageid);
+            foreach ($loaded->get_slots() as $slot) {
+                $this->assertSame($snapshots[$slot], $loaded->get_question($slot)->exercise);
+            }
+        }
+        local\attempts::process($attempt->id, null, true);
+        for ($i = 0; $i < 3; $i++) {
+            try {
+                local\attempts::start($activity, $context, $user->id);
+                $this->fail('A second assessment attempt was created');
+            } catch (\moodle_exception $error) {
+                $this->assertSame('nomoreattempts', $error->errorcode);
+            }
+        }
+        $this->assertEquals(1, $DB->count_records('practicum_attempts',
+            ['practicumid' => $activity->id, 'userid' => $user->id]));
     }
     public function test_once_all_ipv4_categories_resume_and_grade_in_both_modes(): void {
         global $DB;
