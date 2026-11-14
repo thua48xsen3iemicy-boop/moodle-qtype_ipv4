@@ -8,6 +8,8 @@ MOODLE_ROOT="${MOODLE_ROOT:-/var/www/moodle}"
 SOURCE_DIR="${SOURCE_DIR:-/opt/moodle-practicum-src}"
 WEB_USER="${WEB_USER:-www-data}"
 PHP_BIN="${PHP_BIN:-php}"
+PHP_CLI_ARGS=()
+PHP_INPUT_VARS=5000
 BACKUP_ROOT="${BACKUP_ROOT:-/var/backups/moodle-practicum}"
 BRANCH="${BRANCH:-main}"
 STAGING=''
@@ -15,7 +17,7 @@ MAINTENANCE_STARTED=0
 
 log() { printf '\n[deploy] %s\n' "$*"; }
 fail() { printf '[deploy] ERROR: %s\n' "$*" >&2; exit 1; }
-as_web() { runuser -u "$WEB_USER" -- "$PHP_BIN" "$@"; }
+as_web() { runuser -u "$WEB_USER" -- "$PHP_BIN" "${PHP_CLI_ARGS[@]}" "$@"; }
 cleanup() {
     local result=$?
     trap - EXIT
@@ -23,7 +25,12 @@ cleanup() {
     if (( result != 0 && MAINTENANCE_STARTED )); then
         printf '\nDeployment failed. Maintenance remains ON to protect the site.\n' >&2
         printf 'Inspect the error and finish/recover the upgrade before disabling it:\n' >&2
-        printf 'runuser -u %q -- %q %q --disable\n' "$WEB_USER" "$PHP_BIN" "$MOODLE_ROOT/admin/cli/maintenance.php" >&2
+        printf 'runuser -u %q -- %q -d max_input_vars=%q %q --non-interactive &&\n' \
+            "$WEB_USER" "$PHP_BIN" "$PHP_INPUT_VARS" "$MOODLE_ROOT/admin/cli/upgrade.php" >&2
+        printf 'runuser -u %q -- %q -d max_input_vars=%q %q &&\n' \
+            "$WEB_USER" "$PHP_BIN" "$PHP_INPUT_VARS" "$MOODLE_ROOT/admin/cli/purge_caches.php" >&2
+        printf 'runuser -u %q -- %q -d max_input_vars=%q %q --disable\n' \
+            "$WEB_USER" "$PHP_BIN" "$PHP_INPUT_VARS" "$MOODLE_ROOT/admin/cli/maintenance.php" >&2
         printf 'Plugin file backups: %s (database is not backed up by this script).\n' "$BACKUP_ROOT" >&2
     fi
     exit "$result"
@@ -52,6 +59,25 @@ for script in maintenance.php upgrade.php purge_caches.php; do
 done
 exec 9>/var/lock/moodle-plugins-deploy.lock
 flock -n 9 || fail 'Another deployment is running.'
+
+log 'Checking PHP CLI configuration'
+# CLI often uses a different php.ini from FPM/Apache. Apply Moodle's minimum to
+# this deployment only, without changing server configuration or lowering a higher limit.
+PHP_INPUT_VARS="$(as_web -r '
+if (PHP_SAPI !== "cli") { fwrite(STDERR, "Expected PHP CLI.\n"); exit(1); }
+echo max(5000, (int)ini_get("max_input_vars"));
+')" || fail 'Unable to inspect PHP CLI configuration as the web user.'
+[[ "$PHP_INPUT_VARS" =~ ^[0-9]+$ ]] || fail 'Invalid PHP CLI max_input_vars value.'
+PHP_CLI_ARGS=(-d "max_input_vars=$PHP_INPUT_VARS")
+as_web -r '
+echo "PHP CLI: " . PHP_BINARY . " (" . PHP_VERSION . ")\n";
+echo "Loaded php.ini: " . (php_ini_loaded_file() ?: "(none)") . "\n";
+echo "Additional INI files: " . (php_ini_scanned_files() ?: "(none)") . "\n";
+echo "Deployment max_input_vars: " . ini_get("max_input_vars") . "\n";
+if (PHP_SAPI !== "cli" || (int)ini_get("max_input_vars") < 5000) {
+    fwrite(STDERR, "PHP CLI must use max_input_vars >= 5000.\n"); exit(1);
+}
+' || fail 'PHP CLI preflight failed before deployment.'
 
 log "Synchronising repository ($BRANCH)"
 if [[ ! -e "$SOURCE_DIR" ]]; then
@@ -123,7 +149,7 @@ with (root / 'plan.tsv').open('w') as plan:
 PYTHON
 # Catch syntax errors before maintenance or changes to installed plugins.
 while IFS= read -r -d '' file; do
-    "$PHP_BIN" -l "$file" >/dev/null
+    "$PHP_BIN" "${PHP_CLI_ARGS[@]}" -l "$file" >/dev/null
 done < <(find "$STAGING/plugins" -type f -name '*.php' -print0)
 
 # File backups are useful for investigation; DB migrations need a separate DB backup.
