@@ -2,6 +2,9 @@
 
 ## Deployment PHP CLI input limit (2026-11-14)
 
+- Published PR #22: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/22
+  Ready for review; no merge or user-server deployment performed.
+
 - Branch fix/deploy-php-cli-input-vars, based on origin/main 0def880 after PR #21
   merged. No plugin version/schema change, production deployment or PR merge.
 - deploy.sh previously used PHP_BIN without Moodle's required max_input_vars
