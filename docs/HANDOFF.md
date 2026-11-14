@@ -1,5 +1,33 @@
 # Handoff: Practicum foundation
 
+## Deployment PHP CLI input limit (2026-11-14)
+
+- Branch fix/deploy-php-cli-input-vars, based on origin/main 0def880 after PR #21
+  merged. No plugin version/schema change, production deployment or PR merge.
+- deploy.sh previously used PHP_BIN without Moodle's required max_input_vars
+  setting. CLI and web SAPIs may load different INI files. New preflight runs as
+  WEB_USER before source sync or maintenance, derives max(5000, current CLI value),
+  logs binary/version, primary/scanned INI files and the effective setting, and
+  verifies the override. All subsequent PHP calls (including lint) receive the
+  explicit -d max_input_vars value. Higher limits remain unchanged; no INI file
+  is edited. D027 records this deployment contract.
+- Failure recovery output now prints upgrade && purge && maintenance-disable
+  commands with the same override. Existing maintenance retention and refusal
+  to deploy over pre-existing maintenance remain intact. tools/DEPLOY.md includes
+  the manual recovery chain for a deployment already stopped by this error.
+- Actual checks: bash -n deploy.sh tools/deploy-practicum.sh; six command-mocked
+  deployments (1000 raised to 5000; 9000 preserved; upgrade/cache failures;
+  unknown plugin type; failed PHP preflight), including consistent argv for
+  every PHP call, unchanged installed files on preflight failure, safe recovery
+  order and maintenance retention. Existing packaging tests also run.
+- Actual Moodle verification: existing isolated Moodle 5.3.1 Build 20261112 /
+  PHP 8.4.27 CLI. `python work/check-deploy-cli.py` uses temporary primary/scanned
+  INI fixtures, the exact preflight probe extracted from deploy.sh, and Moodle's
+  real check_max_input_vars function. At 1000, the required-setting failure was
+  reproduced; with the selected override 5000, it passed. At 9000, it passed
+  before/after with 9000 preserved. No server INI configuration, user server or
+  Moodle DB was modified by those checks. This is not a full root deployment.
+
 ## Practicum 0.11.1: PR integration with timed training (2026-11-13)
 
 - Published PR #21: https://github.com/thua48xsen3iemicy-boop/moodle-qtype_ipv4/pull/21

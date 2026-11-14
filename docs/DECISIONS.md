@@ -1,5 +1,14 @@
 # Decisions
 
+- D027: Deployment uses the chosen PHP CLI as WEB_USER to derive an effective
+  max_input_vars of max(5000, configured value). Pass that value explicitly with
+  -d to deployment PHP commands, log binary/version and loaded/scanned INI files,
+  and verify it before source synchronisation, maintenance or file replacement.
+  Do not rewrite system/FPM/Apache INI configuration. Retain higher configured
+  limits and existing maintenance failure protection. Recovery instructions
+  chain upgrade, cache purge and maintenance disable with the same CLI override;
+  never disable maintenance automatically after an unsuccessful upgrade.
+
 - D026: Teacher results combine the enrolled learner roster with existing attempt
   history. Use Moodle enrolment/capability APIs (mod/practicum:attempt, excluding
   report viewers without attempts), not literal role names. Include suspended
